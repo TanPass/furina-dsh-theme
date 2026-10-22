@@ -27,7 +27,7 @@
   if (window.__furinaTheme) return
 
   var doc = document
-  var VERSION = '1.1.0'
+  var VERSION = '1.1.1'
   var ROUTE = '/furina-theme'
   var STORAGE_KEY = 'furina-theme.settings.v1'
   var SCRIPT_TAG = 'data-furina-theme'
@@ -334,6 +334,24 @@
     + '.glass button:hover{background:rgba(255,255,255,.08)}'
     + '.glass button[aria-pressed="true"]{border-color:var(--fr-accent,#4ea4ef);background:var(--fr-accent-14,rgba(78,164,239,.16));'
     + 'box-shadow:0 0 0 1px var(--fr-accent-45,rgba(78,164,239,.45)) inset}'
+    // Startup-animation block: drives the companion dsh-startup-screen plugin.
+    + '.startup{display:grid;gap:8px}'
+    + '.swrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 10px;'
+    + 'border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08)}'
+    + '.swlbl{display:grid;gap:2px;line-height:1.35}'
+    + '.swlbl b{font-size:12.5px;font-weight:600}'
+    + '.swlbl small{font-size:10.5px;opacity:.55}'
+    + '.tgl{min-width:58px;padding:5px 10px;border-radius:999px;font-size:11.5px;cursor:pointer;color:inherit;'
+    + 'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);transition:all .18s}'
+    + '.tgl[aria-pressed="true"]{background:var(--fr-accent-14,rgba(78,164,239,.18));'
+    + 'border-color:var(--fr-accent,#4ea4ef);color:var(--fr-accent,#4ea4ef)}'
+    + '.tgl:disabled{opacity:.4;cursor:not-allowed}'
+    + '.selsm{padding:5px 8px;border-radius:8px;font:inherit;font-size:11.5px;color:inherit;'
+    + 'background:rgba(12,16,28,.8);border:1px solid rgba(255,255,255,.16)}'
+    + '.selsm:disabled{opacity:.4}'
+    + '.hint{display:flex;align-items:center;gap:6px;margin:0;font-size:10.5px;opacity:.6}'
+    + '.lnk{padding:0;border:0;background:none;color:var(--fr-accent,#4ea4ef);font:inherit;font-size:10.5px;'
+    + 'cursor:pointer;text-decoration:underline}'
     + '.ft{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px;'
     + 'padding-top:10px;border-top:1px solid var(--fr-line,rgba(255,255,255,.1));font-size:10.5px;opacity:.6}'
     + '.rst{padding:4px 9px;border-radius:8px;cursor:pointer;color:inherit;font-size:10.5px;'
@@ -429,6 +447,21 @@
       + '<h2>皮肤 · Skin</h2><div class="skins">' + skinMarkup() + '</div>'
       + '<h2>壁纸 · Wallpaper</h2><div class="walls">' + wallpaperMarkup() + '</div>'
       + '<h2>玻璃 · Glass</h2><div class="glass">' + glassMarkup() + '</div>'
+      // The companion dsh-startup-screen plugin keeps its 30+ options in its own
+      // section; the two controls that matter most live here, next to the skin
+      // they are coloured from, and the full panel is one click away.
+      + '<h2>启动动画 · Startup</h2>'
+      + '<div class="startup" data-startup-block>'
+      + '<div class="swrow"><span class="swlbl"><b>启用启动动画</b>'
+      + '<small>启动时播放芙宁娜配色的开机序列</small></span>'
+      + '<button class="tgl" data-startup-toggle aria-pressed="false" disabled>检测中</button></div>'
+      + '<div class="swrow"><span class="swlbl"><b>播放模式</b>'
+      + '<small>每次会话 / 总是 / 每天</small></span>'
+      + '<select class="selsm" data-startup-mode disabled>'
+      + '<option value="session">每次会话</option><option value="always">总是</option>'
+      + '<option value="daily">每天</option></select></div>'
+      + '<p class="hint" data-startup-hint>正在检测 dsh-startup-screen…</p>'
+      + '</div>'
       + '<div class="ft"><button class="rst" data-reset>恢复默认</button>'
       + '<span>v' + VERSION + ' · <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd></span></div>'
   }
@@ -535,6 +568,106 @@
 
     var input = scope.querySelector('.filepick')
     if (input !== null) input.addEventListener('change', function onchange() { onPickFile(input) })
+
+    wireStartup(scope)
+  }
+
+  /* ------------------------------------------------- startup animation block */
+
+  var STARTUP_API = '/dsh-startup/config'
+
+  // Reads and writes the companion plugin's own config file through its JSON
+  // endpoint (the plugin owns the schema, so this stays forward compatible).
+  // When the plugin is absent the block stays visible but disabled, with the
+  // install hint — the theme must never hard-depend on it.
+  function wireStartup(scope) {
+    var toggle = scope.querySelector('[data-startup-toggle]')
+    var mode = scope.querySelector('[data-startup-mode]')
+    var hint = scope.querySelector('[data-startup-hint]')
+    if (toggle === null || mode === null || hint === null) return
+    var config = null
+    var busy = false
+
+    function paint() {
+      var on = config !== null && config.enabled !== false
+      toggle.disabled = config === null || busy
+      mode.disabled = config === null || busy
+      toggle.setAttribute('aria-pressed', String(on))
+      toggle.textContent = config === null ? '未安装' : (on ? '开' : '关')
+      if (config !== null && typeof config.mode === 'string') mode.value = config.mode
+    }
+
+    function note(text, withLink) {
+      hint.textContent = ''
+      var span = doc.createElement('span')
+      span.textContent = text
+      hint.appendChild(span)
+      if (withLink !== true) return
+      var link = doc.createElement('button')
+      link.type = 'button'
+      link.className = 'lnk'
+      link.textContent = '打开完整设置'
+      link.addEventListener('click', function onopen() {
+        var dialog = findSettingsDialog()
+        if (dialog === null) return
+        var cells = dialog.querySelectorAll('nav button')
+        for (var i = 0; i < cells.length; i += 1) {
+          if (cells[i].textContent.trim() === '启动动画') { cells[i].click(); return }
+        }
+      })
+      hint.appendChild(link)
+    }
+
+    function save(patch) {
+      if (busy || config === null) return
+      busy = true
+      paint()
+      fetch(STARTUP_API, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ patch: patch }),
+      }).then(function onok(response) { return response.json() })
+        .then(function ondata(data) {
+          if (data !== null && data.ok === true && data.config) config = data.config
+          busy = false
+          paint()
+          note('已保存 · 立即生效', true)
+        })
+        .catch(function onerr() {
+          busy = false
+          paint()
+          note('保存失败，请确认 dsh-startup-screen 已启用', true)
+        })
+    }
+
+    toggle.addEventListener('click', function ontoggle() {
+      if (config === null) return
+      save({ enabled: config.enabled === false })
+    })
+    mode.addEventListener('change', function onmode() {
+      if (config === null) return
+      save({ mode: mode.value })
+    })
+
+    fetch(STARTUP_API, { credentials: 'same-origin' })
+      .then(function onok(response) {
+        if (!response.ok) throw new Error('http ' + response.status)
+        return response.json()
+      })
+      .then(function ondata(data) {
+        if (data === null || data.ok !== true || data.config === null || data.config === undefined) {
+          throw new Error('no config')
+        }
+        config = data.config
+        paint()
+        note('已连接 dsh-startup-screen' + (data.version ? ' ' + data.version : ''), true)
+      })
+      .catch(function onerr() {
+        config = null
+        paint()
+        hint.textContent = '未检测到 dsh-startup-screen；安装后此处会自动出现开关'
+      })
   }
 
   /* --------------------------------------------------------------- switcher */
