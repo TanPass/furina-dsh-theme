@@ -207,6 +207,23 @@ node "<dsh-checkout>\lib\bin.js" plugin --profile web add https://github.com/Tan
 A published version can be pinned the same way, e.g.
 `dsh plugin --profile web add furina-dsh-theme@1.1.0`.
 
+### Bundle: theme + startup animation in one install
+
+The [latest release](https://github.com/TanPass/furina-dsh-theme/releases/latest)
+ships `furina-dsh-pack-<version>.zip` containing both plugins plus a Windows
+installer, because the themed startup animation is a **separate** plugin
+(`dsh-startup-screen`). To install both halves by hand instead:
+
+```powershell
+dsh plugin --profile web add https://github.com/TanPass/furina-dsh-theme
+dsh plugin --profile web add github:6shenhonghong9/dsh-startup-screen
+```
+
+The bundle's `install.cmd` does exactly these two commands and then tells you to
+restart DSH. The startup plugin is optional — without it the theme still works and the
+in-panel 启动动画 block disables itself. Its source is also vendored under
+[`companion/dsh-startup-screen/`](companion/dsh-startup-screen/) for reference and credit.
+
 **Local development** — install the working tree as a link, so edits are live after a
 page refresh:
 
