@@ -572,6 +572,7 @@ docs/                   round-1 screenshots + verify-report.json
 docs/screenshots/       round-2 proof shots (three skins, settings page, splash boot, file cards)
 companion/              reference/companion plugins, source-identical, for reading and credit
   dsh-startup-screen/     the startup animation this theme tints (MIT, © 沈宏宏)
+install/                one-click bundle installer (release zip: theme + startup plugin + these scripts)
 CREDITS.md              art sources, companion plugin authors and licence texts
 LICENSE                 MIT License (code only)
 NOTICE.md               asset provenance and character/IP notice
