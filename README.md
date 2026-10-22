@@ -95,6 +95,14 @@ the bundled plugins do:
   never appears, so the old UI remains an honest fallback rather than the primary
   surface.
 
+Below 玻璃 the same pane carries the **启动动画 · Startup** block, so the companion
+startup-animation plugin is operated from the same screen as the skin it is coloured
+from: an enable switch, a 每次会话 / 总是 / 每天 play-mode select and a
+`打开完整设置` link that jumps to the plugin's own section for its 30+ options. The
+block talks to the plugin's own JSON endpoint (`GET`/`POST /dsh-startup/config`, patch
+semantics owned by that plugin) and disables itself with an install hint when
+`dsh-startup-screen` is not present — the theme never hard-depends on it.
+
 ### Startup splash
 
 `client/theme.js` appends one `<style id="furina-startup-skin">` to `<head>`. The splash
@@ -545,9 +553,30 @@ test/                   node:test suites (host, client, billing)
 tools/verify.mjs        live-instance CDP verification + screenshots
 docs/                   round-1 screenshots + verify-report.json
 docs/screenshots/       round-2 proof shots (three skins, settings page, splash boot, file cards)
+companion/              reference/companion plugins, source-identical, for reading and credit
+  dsh-startup-screen/     the startup animation this theme tints (MIT, © 沈宏宏)
+CREDITS.md              art sources, companion plugin authors and licence texts
 LICENSE                 MIT License (code only)
 NOTICE.md               asset provenance and character/IP notice
 ```
+
+## Credits
+
+Fan-art wallpapers (full sources, licence notes and re-encode details in
+[CREDITS.md](CREDITS.md)):
+
+| File | Creator / credit | Source |
+| --- | --- | --- |
+| `furina-01-city-noir.jpg` | **rotvirtue** | [Wallpaper Abyss #1409444](https://wall.alphacoders.com/big.php?i=1409444) |
+| `furina-02-hydro-iris.jpg` | **58\_(opal_00_58)** | [Danbooru 5837276](https://danbooru.donmai.us/posts/5837276) |
+| `furina-03-salon-solitude.jpg` | artist not named on the page | [Wallpaper Abyss #1353872](https://wall.alphacoders.com/big.php?i=1353872) |
+
+Companion plugin: [`dsh-startup-screen`](https://github.com/6shenhonghong9/dsh-startup-screen)
+1.1.0 by **沈宏宏** (MIT) — vendored unmodified in
+[`companion/dsh-startup-screen/`](companion/dsh-startup-screen/) with its original
+licence; the theme re-colours its splash per skin and exposes its enable/mode controls
+in the settings page. `dsh-cost-meter` 1.8.24 by **Han-1413141** (MIT) powers the
+电力储备 panel and is declared as an npm dependency, not copied.
 
 ## License
 
@@ -559,3 +588,6 @@ of Furina (《原神》 / Genshin Impact, © HoYoverse), included for personal, 
 theming only. See [NOTICE.md](NOTICE.md) before redistributing or publishing this
 repository — or replace the images in `client/assets/` with art you may redistribute
 (the theme works with any images).
+
+The vendored startup plugin in `companion/dsh-startup-screen/` keeps its own MIT
+notice and copyright (© 沈宏宏); see that folder's `LICENSE`.
