@@ -71,9 +71,10 @@ test('package manifest is installable as a dsh plugin', () => {
   assert.ok(manifest.files.includes('client'))
   assert.ok(manifest.files.includes('cordis.patch.yml'))
   assert.equal(manifest.dsh.bundle.patch, './cordis.patch.yml')
-  // The host half is ESM and imports node: builtins only — no runtime deps.
+  // The host half is ESM and imports node: builtins only; dsh-cost-meter is
+  // the one declared runtime dependency (the optional billing panel needs it).
   assert.equal(manifest.type, 'module')
-  assert.equal(manifest.dependencies, undefined)
+  assert.deepEqual(manifest.dependencies, { 'dsh-cost-meter': '^1.8.24' })
 })
 
 test('cordis.patch.yml inserts this package into the dsh:plugin group', () => {

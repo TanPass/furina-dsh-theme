@@ -1,0 +1,409 @@
+/* ==========================================================================
+   Furina theme — billing panel (电力储备 / POWER RESERVE).
+
+   The panel is appended inside `[data-slot="sidebar"]`, which the shell renders
+   with `display: contents`; a statically laid-out child would land at the top
+   of the document. It is therefore `position: fixed`, pinned to the measured
+   left edge of the conversation column (`--fr-col-left`, set by billing.js).
+   Placed above the account row (bottom offset leaves that row visible).
+
+   Every colour comes from the palette variables defined in theme.css and
+   falls back to the fontaine-nocturne values, so the card keeps contrast in
+   all three skins even when the theme stylesheet has not loaded yet. All three
+   skins are dark; only the accent hue changes.
+   ========================================================================== */
+
+#furina-billing.fr-bill {
+  --fr-panel: var(--fr-surface, #0d152b);
+  --fr-panel-2: var(--fr-bg-deep, #03050d);
+  --fr-bill-line: var(--fr-line, rgba(223, 232, 247, 0.14));
+  --fr-bill-line-2: var(--fr-line-strong, rgba(78, 164, 239, 0.42));
+  --fr-bill-text: var(--fr-text, #dfe8f7);
+  --fr-bill-hi: var(--fr-text-hi, #eef4ff);
+  --fr-bill-2: var(--fr-text-2, #a8b8d8);
+  --fr-bill-3: var(--fr-text-3, #6d7fa3);
+  --fr-bill-accent: var(--fr-accent, #4ea4ef);
+  --fr-bill-glow: var(--fr-glow, rgba(78, 164, 239, 0.34));
+
+  position: fixed;
+  left: 8px;
+  /* --fr-bill-bottom is measured from the sidebar footer action slot, so the
+     card always clears the account chip; 64px is the no-footer fallback. */
+  bottom: var(--fr-bill-bottom, 64px);
+  z-index: 42;
+  box-sizing: border-box;
+  width: calc(var(--fr-col-left, 258px) - 16px);
+  max-width: 420px;
+  max-height: calc(100vh - var(--fr-bill-bottom, 64px) - 14px);
+  overflow: hidden;
+  padding: 10px 11px 9px;
+  border: 1px solid var(--fr-bill-line);
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      158deg,
+      color-mix(in srgb, var(--fr-panel) 88%, transparent) 0%,
+      color-mix(in srgb, var(--fr-panel-2) 94%, transparent) 100%
+    );
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.46),
+    inset 0 1px 0 color-mix(in srgb, var(--fr-bill-hi) 9%, transparent);
+  backdrop-filter: blur(var(--fr-blur, 16px)) saturate(var(--fr-sat, 128%));
+  -webkit-backdrop-filter: blur(var(--fr-blur, 16px)) saturate(var(--fr-sat, 128%));
+  color: var(--fr-bill-text);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  display: flex;
+  flex-direction: column;
+  transition: opacity 220ms var(--fr-ease, ease), transform 220ms var(--fr-ease, ease);
+}
+
+/* A hairline of skin accent along the top edge, like the theme's other glass. */
+#furina-billing.fr-bill::before {
+  content: '';
+  position: absolute;
+  inset: 0 12px auto;
+  height: 1px;
+  border-radius: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--fr-bill-accent) 70%, transparent) 28%,
+    color-mix(in srgb, var(--fr-accent-hi, #7cc4ff) 80%, transparent) 52%,
+    color-mix(in srgb, var(--fr-warm, #d9b48f) 55%, transparent) 78%,
+    transparent
+  );
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+#furina-billing.fr-bill[data-collapsed='true'] {
+  display: none;
+}
+
+/* ------------------------------------------------------------------- head */
+
+#furina-billing .fr-bill__head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-height: 18px;
+}
+
+#furina-billing .fr-bill__title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--fr-bill-hi);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--fr-bill-accent) 38%, transparent);
+}
+
+#furina-billing .fr-bill__en {
+  font-size: 8px;
+  font-style: normal;
+  letter-spacing: 0.18em;
+  color: var(--fr-bill-3);
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#furina-billing .fr-bill__refresh {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--fr-bill-line);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--fr-bill-accent) 9%, transparent);
+  color: var(--fr-bill-accent);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease, color 160ms ease;
+}
+
+#furina-billing .fr-bill__refresh:hover {
+  border-color: var(--fr-bill-line-2);
+  color: var(--fr-bill-hi);
+  box-shadow: 0 0 10px var(--fr-bill-glow);
+}
+
+#furina-billing.fr-bill.is-busy .fr-bill__refresh {
+  animation: fr-bill-spin 900ms linear infinite;
+  color: var(--fr-bill-hi);
+}
+
+@keyframes fr-bill-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ------------------------------------------------------------ figure + meter */
+
+#furina-billing .fr-bill__figure-row {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+#furina-billing .fr-bill__figure {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  color: var(--fr-bill-hi);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 18px color-mix(in srgb, var(--fr-bill-accent) 30%, transparent);
+}
+
+#furina-billing .fr-bill__cur {
+  font-size: 11px;
+  color: var(--fr-bill-3);
+}
+
+#furina-billing .fr-bill__caption {
+  margin-left: auto;
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fr-bill-3);
+  white-space: nowrap;
+}
+
+#furina-billing.fr-bill[data-state='nominal'] .fr-bill__caption {
+  color: var(--fr-success, #5fd39a);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--fr-success, #5fd39a) 45%, transparent);
+}
+
+#furina-billing.fr-bill[data-state='low'] .fr-bill__caption {
+  color: var(--fr-warn, #f2d06d);
+}
+
+#furina-billing.fr-bill[data-state='empty'] .fr-bill__caption {
+  color: var(--fr-danger, #f26d78);
+}
+
+#furina-billing .fr-bill__meter {
+  position: relative;
+  height: 5px;
+  margin-top: 7px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--fr-bg-dark, #04060f) 82%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fr-bill-line) 60%, transparent);
+}
+
+#furina-billing .fr-bill__fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: linear-gradient(
+    90deg,
+    var(--fr-bill-accent),
+    var(--fr-accent-hi, #7cc4ff) 55%,
+    var(--fr-warm, #d9b48f)
+  );
+  box-shadow: 0 0 12px var(--fr-bill-glow);
+  transition: transform 700ms var(--fr-ease, ease);
+}
+
+#furina-billing .fr-bill__ticks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent calc(10% - 1px),
+    color-mix(in srgb, var(--fr-bg-dark, #04060f) 85%, transparent) calc(10% - 1px),
+    color-mix(in srgb, var(--fr-bg-dark, #04060f) 85%, transparent) 10%
+  );
+}
+
+#furina-billing .fr-bill__wallet {
+  margin-top: 6px;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: var(--fr-bill-2);
+}
+
+#furina-billing .fr-bill__wallet.is-bonus {
+  color: var(--fr-warm, #d9b48f);
+}
+
+/* ------------------------------------------------------------------- detail */
+
+#furina-billing .fr-bill__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 5px 9px;
+  border: 1px dashed color-mix(in srgb, var(--fr-bill-accent) 34%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--fr-bill-accent) 7%, transparent);
+  color: var(--fr-bill-2);
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+#furina-billing .fr-bill__toggle:hover {
+  color: var(--fr-bill-hi);
+  border-color: color-mix(in srgb, var(--fr-bill-accent) 62%, transparent);
+  background: color-mix(in srgb, var(--fr-bill-accent) 13%, transparent);
+}
+
+#furina-billing .fr-bill__chevron {
+  font-style: normal;
+  font-size: 10px;
+  color: var(--fr-bill-accent);
+}
+
+#furina-billing .fr-bill__detail {
+  display: grid;
+  gap: 7px;
+  margin-top: 8px;
+  max-height: min(44vh, 340px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--fr-bill-accent) 40%, transparent) transparent;
+}
+
+#furina-billing .fr-bill__detail[hidden] {
+  display: none;
+}
+
+#furina-billing .fr-bill__block {
+  padding: 7px 9px 6px;
+  border: 1px solid color-mix(in srgb, var(--fr-bill-line) 80%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--fr-panel) 58%, transparent);
+}
+
+#furina-billing .fr-bill__block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+#furina-billing .fr-bill__block-name {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  color: var(--fr-bill-3);
+}
+
+#furina-billing .fr-bill__block-cost {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--fr-accent-hi, #7cc4ff);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--fr-bill-accent) 32%, transparent);
+}
+
+#furina-billing .fr-bill__block[data-available='false'] .fr-bill__block-cost {
+  color: var(--fr-muted, #4a5a80);
+  text-shadow: none;
+}
+
+#furina-billing .fr-bill__sub {
+  min-height: 12px;
+  margin: 2px 0 5px;
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+  color: var(--fr-bill-3);
+}
+
+#furina-billing .fr-bill__tokens {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+#furina-billing .fr-bill__tokens > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2.5px 0;
+  border-top: 1px dashed color-mix(in srgb, var(--fr-bill-line) 55%, transparent);
+}
+
+#furina-billing .fr-bill__tokens > div:first-child {
+  border-top: 0;
+}
+
+#furina-billing .fr-bill__tokens dt {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: var(--fr-bill-3);
+}
+
+#furina-billing .fr-bill__tokens dd {
+  margin: 0;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fr-bill-2);
+}
+
+#furina-billing .fr-bill__block[data-available='true'] .fr-bill__tokens dd {
+  color: var(--fr-bill-text);
+}
+
+#furina-billing .fr-bill__note {
+  margin: 6px 0 0;
+  font-size: 8.5px;
+  line-height: 1.4;
+  text-align: center;
+  letter-spacing: 0.03em;
+  color: var(--fr-bill-3);
+  opacity: 0.72;
+}
+
+/* ------------------------------------------------------------- interaction */
+
+#furina-billing .fr-bill__refresh:focus-visible,
+#furina-billing .fr-bill__toggle:focus-visible {
+  outline: 2px solid var(--fr-bill-line-2);
+  outline-offset: 2px;
+}
+
+@media (max-height: 640px) {
+  #furina-billing .fr-bill__figure {
+    font-size: 18px;
+  }
+
+  #furina-billing .fr-bill__detail {
+    max-height: 36vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #furina-billing .fr-bill__fill,
+  #furina-billing.fr-bill,
+  #furina-billing .fr-bill__refresh,
+  #furina-billing .fr-bill__toggle {
+    transition: none;
+  }
+
+  #furina-billing.fr-bill.is-busy .fr-bill__refresh {
+    animation: none;
+  }
+}

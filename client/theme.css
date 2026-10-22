@@ -12,7 +12,8 @@
      4. backdrop       — wallpaper layers, veil, glow, waves, crest, grain
      5. tokens         — every DSH design token, mapped from the palette
      6. chrome         — the handful of real selectors worth styling by hand
-     7. motion         — transitions, and the reduced-motion opt-out
+     7. deliverables   — file-change cards and presented-file rows
+     8. motion         — transitions, and the reduced-motion opt-out
 
    Everything is scoped to `html[data-furina-skin]`, so removing the attribute
    (or the plugin) returns the application to stock with no residue. The
@@ -37,11 +38,11 @@ html[data-furina-skin='fontaine-nocturne'] {
   --fr-surface-2: #121d3a;
   --fr-overlay: #1a2747;
   --fr-selection: #2d3c81;
-  --fr-text: #dfe8f7;
-  --fr-text-hi: #eef4ff;
-  --fr-text-2: #a8b8d8;
-  --fr-text-3: #6d7fa3;
-  --fr-muted: #4a5a80;
+  --fr-text: #eef4ff;
+  --fr-text-hi: #f9fcff;
+  --fr-text-2: #c3d2ec;
+  --fr-text-3: #9aabcc;
+  --fr-muted: #7488ae;
   --fr-accent: #4ea4ef;
   --fr-accent-hi: #7cc4ff;
   --fr-accent-2: #8b6cf0;
@@ -54,6 +55,13 @@ html[data-furina-skin='fontaine-nocturne'] {
   --fr-info: #63d6f2;
   --fr-glow: rgba(78, 164, 239, 0.34);
   --fr-glow-soft: rgba(78, 164, 239, 0.2);
+  /* Rail fills. The sidebar is its own surface in the shell rather than a panel
+     over the wallpaper, so each skin carries a matching rail tint instead of
+     one fixed navy for all three. */
+  --fr-side-top: #070c1f;
+  --fr-side-bottom: #0b1438;
+  --fr-side-line: rgba(78, 164, 239, 0.3);
+  --fr-side-active: rgba(78, 164, 239, 0.22);
 }
 
 html[data-furina-skin='hydro-iris'] {
@@ -64,11 +72,11 @@ html[data-furina-skin='hydro-iris'] {
   --fr-surface-2: #101a38;
   --fr-overlay: #16234a;
   --fr-selection: #243a86;
-  --fr-text: #edf5ff;
-  --fr-text-hi: #f4f9ff;
-  --fr-text-2: #aec4e6;
-  --fr-text-3: #6b7ea6;
-  --fr-muted: #46567c;
+  --fr-text: #eaf7ff;
+  --fr-text-hi: #f7fcff;
+  --fr-text-2: #c0dff2;
+  --fr-text-3: #93b6d0;
+  --fr-muted: #6f92ad;
   --fr-accent: #5fb4ff;
   --fr-accent-hi: #8fe8ff;
   --fr-accent-2: #8367ff;
@@ -81,6 +89,10 @@ html[data-furina-skin='hydro-iris'] {
   --fr-info: #8fe8ff;
   --fr-glow: rgba(95, 180, 255, 0.38);
   --fr-glow-soft: rgba(95, 180, 255, 0.22);
+  --fr-side-top: #03141f;
+  --fr-side-bottom: #072a3f;
+  --fr-side-line: rgba(143, 232, 255, 0.28);
+  --fr-side-active: rgba(95, 180, 255, 0.24);
 }
 
 html[data-furina-skin='salon-solitude'] {
@@ -91,11 +103,11 @@ html[data-furina-skin='salon-solitude'] {
   --fr-surface-2: #1e2440;
   --fr-overlay: #262c4a;
   --fr-selection: #3a3f63;
-  --fr-text: #f2edf0;
-  --fr-text-hi: #faf6f8;
-  --fr-text-2: #c9c3d6;
-  --fr-text-3: #8b86a0;
-  --fr-muted: #5e5a78;
+  --fr-text: #fff2ea;
+  --fr-text-hi: #fffaf5;
+  --fr-text-2: #e4d3dc;
+  --fr-text-3: #b9a8c2;
+  --fr-muted: #94879f;
   --fr-accent: #dea998;
   --fr-accent-hi: #f0c9b6;
   --fr-accent-2: #c79bd6;
@@ -108,6 +120,10 @@ html[data-furina-skin='salon-solitude'] {
   --fr-info: #8fa9dd;
   --fr-glow: rgba(222, 169, 152, 0.3);
   --fr-glow-soft: rgba(222, 169, 152, 0.18);
+  --fr-side-top: #191122;
+  --fr-side-bottom: #291b2f;
+  --fr-side-line: rgba(222, 169, 152, 0.32);
+  --fr-side-active: rgba(199, 155, 214, 0.24);
 }
 
 /* ------------------------------------------------------------------- 2. glass */
@@ -479,9 +495,11 @@ html[data-furina-skin] body {
   --dsw-radius-panel: 16px;
 }
 
-/* A light-mode shell keeps the skin: the palette is one palette, and its text
-   colours are already measured against its own grounds. */
-html[data-furina-skin] body:not([data-ds-dark-theme]) {
+/* The shell's light token branch is inert while the skin is on: theme.js
+   asserts data-ds-dark-theme / color-scheme: dark, and this palette is dark in
+   every skin. Declared on <body> so native widgets (scrollbars, form controls,
+   plugin surfaces) follow even before the script gets a chance to run. */
+html[data-furina-skin] body {
   color-scheme: dark;
 }
 
@@ -494,13 +512,28 @@ html[data-furina-skin] body:not([data-ds-dark-theme]) {
    re-rasterised on every frame of that animation. A tinted fill over the
    wallpaper is the same look at no per-frame cost. */
 html[data-furina-skin] body [data-slot='sidebar'] > div {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--fr-bg-deep) var(--fr-g-soft), transparent),
-    color-mix(in srgb, var(--fr-bg) var(--fr-g-soft), transparent)
-  );
-  border-right: 1px solid color-mix(in srgb, var(--fr-accent) 18%, transparent);
-  box-shadow: 1px 0 0 color-mix(in srgb, var(--fr-text) 5%, transparent) inset;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--fr-side-top) var(--fr-g-soft), transparent),
+      color-mix(in srgb, var(--fr-side-bottom) var(--fr-g-soft), transparent)
+    ),
+    linear-gradient(180deg, color-mix(in srgb, var(--fr-accent) 7%, transparent), transparent 62%);
+  border-right: 1px solid var(--fr-side-line);
+  box-shadow:
+    1px 0 0 color-mix(in srgb, var(--fr-text) 5%, transparent) inset,
+    0 0 0 1px color-mix(in srgb, var(--fr-accent) 6%, transparent) inset;
+}
+
+/* The rail's own controls follow the skin too, so the account chip, workspace
+   rows and footer do not stay stock-navy on the hydro/salon rails. */
+html[data-furina-skin] body [data-slot='sidebar'] button[aria-label='账号菜单'],
+html[data-furina-skin] body [data-slot='sidebar'] [class*='workspace'] button {
+  color: var(--fr-text);
+}
+
+html[data-furina-skin] body [data-slot='sidebar'] button[aria-label='账号菜单']:hover {
+  background: color-mix(in srgb, var(--fr-accent) 14%, transparent);
 }
 
 html[data-furina-skin] body [data-slot='sidebar'] [data-window-drag] > button[class*='brand'],
@@ -657,7 +690,81 @@ html[data-furina-skin] body :is(button, [role='button'], input, textarea, [tabin
   outline-offset: 2px;
 }
 
-/* ------------------------------------------------------------------ 7. motion */
+/* --- deliverables ------------------------------------------------------- */
+
+/* File-change cards and presented-file rows are painted from the deliverables
+   plugin's own tokens (--changes-fill / --deliverable-fill), which default to
+   the *light* neutral ramp unless body[data-ds-dark-theme] is set. The shell
+   runs its light branch by default, so those cards arrived white-on-white;
+   theme.js now asserts the dark branch, and these rules pin the two fill tokens
+   to the skin's glass so the card matches the palette instead of plain #212123. */
+html[data-furina-skin] body [data-changed-files] {
+  --changes-fill: color-mix(in srgb, var(--fr-surface-2) 88%, transparent);
+  --changes-hover: color-mix(in srgb, var(--fr-accent) 16%, var(--fr-surface-2));
+  background: color-mix(in srgb, var(--fr-surface) 88%, transparent);
+  border-color: color-mix(in srgb, var(--fr-accent) 24%, transparent);
+  color: var(--fr-text);
+}
+
+html[data-furina-skin] body [data-changed-files] [class*='_header'],
+html[data-furina-skin] body [data-changed-files] [class*='_row'],
+html[data-furina-skin] body [data-changed-files] [class*='_path'] {
+  color: var(--fr-text);
+}
+
+html[data-furina-skin] body [data-changed-files] [class*='_tile'] {
+  color: var(--fr-accent-hi);
+  background: color-mix(in srgb, var(--fr-accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fr-accent) 26%, transparent);
+}
+
+html[data-furina-skin] body [data-changed-files] [class*='_row'] {
+  border-radius: var(--dsw-radius-sm);
+}
+
+html[data-furina-skin] body [data-changed-files] [class*='_row']:hover {
+  background: color-mix(in srgb, var(--fr-accent) 12%, transparent);
+}
+
+html[data-furina-skin] body [data-changed-files] [class*='_counts'] {
+  color: var(--fr-text-2);
+}
+
+html[data-furina-skin] body [data-changes-hover-preview] {
+  color: var(--fr-text);
+  background: color-mix(in srgb, var(--fr-bg-dark) 95%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fr-accent) 26%, transparent);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+}
+
+html[data-furina-skin] body [data-presented-files-row] {
+  --deliverable-fill: color-mix(in srgb, var(--fr-surface-2) 88%, transparent);
+  --deliverable-hover: color-mix(in srgb, var(--fr-accent) 16%, var(--fr-surface-2));
+}
+
+html[data-furina-skin] body [data-presented-file] {
+  --deliverable-fill: color-mix(in srgb, var(--fr-surface-2) 88%, transparent);
+  --deliverable-hover: color-mix(in srgb, var(--fr-accent) 16%, var(--fr-surface-2));
+  background: var(--deliverable-fill);
+  border-color: color-mix(in srgb, var(--fr-accent) 24%, transparent);
+  color: var(--fr-text);
+}
+
+html[data-furina-skin] body [data-presented-file] [class*='_fileIcon'] {
+  color: var(--fr-accent-hi);
+  background: color-mix(in srgb, var(--fr-accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fr-accent) 26%, transparent);
+}
+
+html[data-furina-skin] body [data-presented-file] [class*='_fileName'] {
+  color: var(--fr-text);
+}
+
+html[data-furina-skin] body [data-presented-file] [class*='_description'] {
+  color: var(--fr-text-2);
+}
+
+/* ------------------------------------------------------------------ 8. motion */
 
 /* The theme's own transitions only. Nothing here animates layout or paint on
    scroll; the only forever-running animation is the accent bloom, which is a

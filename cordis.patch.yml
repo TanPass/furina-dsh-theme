@@ -1,9 +1,17 @@
 # dsh bundle patch — inserts the Furina theme into a profile's layer stack.
 #
 # The plugin is host-only (no `dsh.client` facet): it registers one prefix route
-# that serves the browser half (`client/theme.css`, `client/theme.js`, wallpapers)
-# and one index-injection row that pulls that script into the page. Every visual
-# decision lives in `client/`; nothing here knows a class name.
+# that serves the browser half (`client/theme.css`, `client/theme.js`, billing,
+# wallpapers) and one index-injection row that pulls those scripts into the
+# page. Every visual decision lives in `client/`; nothing here knows a class name.
+#
+# The second row mounts dsh-cost-meter's `costMeter` service. The billing panel
+# reads the ledger through that service (`getState()` / `getSessionBilling()`);
+# installing the package alone is not enough — the service only exists once
+# this row is applied. The id is prefixed to stay unique when a profile also
+# carries dsh-cost-meter's own patch row.
 - insert:
     - id: furina-dsh-theme
       name: furina-dsh-theme
+    - id: furina-cost-meter
+      name: dsh-cost-meter
