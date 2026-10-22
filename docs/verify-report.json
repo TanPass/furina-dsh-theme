@@ -1,6 +1,6 @@
 {
   "ok": true,
-  "generatedAt": "2026-10-22T13:10:58.919Z",
+  "generatedAt": "2026-10-22T13:13:33.269Z",
   "url": "http://127.0.0.1:3081/",
   "viewport": {
     "width": 1600,
@@ -156,27 +156,27 @@
     {
       "skin": "fontaine-nocturne",
       "path": "D:\\work area\\furina-theme\\dsh\\docs\\screenshot-fontaine-nocturne.png",
-      "bytes": 1866322
+      "bytes": 1867366
     },
     {
       "skin": "hydro-iris",
       "path": "D:\\work area\\furina-theme\\dsh\\docs\\screenshot-hydro-iris.png",
-      "bytes": 1451551
+      "bytes": 1454028
     },
     {
       "skin": "salon-solitude",
       "path": "D:\\work area\\furina-theme\\dsh\\docs\\screenshot-salon-solitude.png",
-      "bytes": 1427486
+      "bytes": 1428879
     },
     {
       "state": "switcher-open",
       "path": "D:\\work area\\furina-theme\\dsh\\docs\\screenshot-switcher-open.png",
-      "bytes": 1295772
+      "bytes": 1295325
     },
     {
       "state": "wallpaper-swap",
       "path": "D:\\work area\\furina-theme\\dsh\\docs\\screenshot-wallpaper-swap.png",
-      "bytes": 1358238
+      "bytes": 1358316
     }
   ]
 }

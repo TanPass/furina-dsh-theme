@@ -230,15 +230,15 @@
   var SWITCHER_CSS = ''
     + ':host{all:initial}'
     + '*,*::before,*::after{box-sizing:border-box}'
-    // Right edge, vertically centred: the bottom-right corner belongs to the
-    // pet widget and the composer, so the launcher sits on the edge between them.
-    + '.fl{position:fixed;right:16px;top:50%;margin-top:-26px;z-index:2147481200;width:52px;height:52px;'
+    // Bottom-right, but lifted clear of the pet widget's corner so neither covers the
+    // other; the composer's send button sits further left and is never touched.
+    + '.fl{position:fixed;right:20px;bottom:196px;z-index:2147481200;width:52px;height:52px;'
     + 'padding:0;border-radius:50%;border:1px solid var(--fr-glass-border,rgba(255,255,255,.22));'
     + 'background:linear-gradient(155deg,rgba(20,34,66,.92),rgba(6,10,24,.94));'
     + 'box-shadow:0 10px 30px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.05) inset,0 0 22px var(--fr-glow-soft,rgba(78,164,239,.28));'
     + 'cursor:pointer;display:grid;place-items:center;transition:transform .22s cubic-bezier(.22,.9,.16,1),box-shadow .22s;'
     + 'backdrop-filter:blur(14px) saturate(130%)}'
-    + '.fl:hover{transform:translateX(-2px) scale(1.05);box-shadow:0 14px 36px rgba(0,0,0,.6),0 0 26px var(--fr-accent,#4ea4ef)}'
+    + '.fl:hover{transform:translateY(-3px) scale(1.05);box-shadow:0 14px 36px rgba(0,0,0,.6),0 0 26px var(--fr-accent,#4ea4ef)}'
     + '.fl:focus-visible{outline:2px solid var(--fr-accent,#4ea4ef);outline-offset:3px}'
     + '.fl img{width:30px;height:30px;display:block;filter:drop-shadow(0 0 6px var(--fr-glow-soft,rgba(78,164,239,.5)))}'
     + '.dual{position:fixed;inset:0;z-index:2147481300;display:none}'
@@ -374,7 +374,7 @@
     shadow = switcherHost.attachShadow({ mode: 'open' })
     shadow.innerHTML = ''
       + '<style>' + SWITCHER_CSS + '</style>'
-      + '<button class="fl" part="launcher" title="芙宁娜主题 · Furina theme (Ctrl+Shift+F)" aria-label="打开芙宁娜主题面板">'
+      + '<button class="fl" part="launcher" title="芙宁娜主题 · Furina theme (Ctrl+Shift+U)" aria-label="打开芙宁娜主题面板">'
       + '<img src="' + ROUTE + '/assets/emblem.svg" alt=""></button>'
       + '<div class="dual"><div class="panel" role="dialog" aria-modal="false" aria-label="芙宁娜主题设置">'
       + '<div class="hd"><img src="' + ROUTE + '/assets/emblem.svg" alt="">'
@@ -383,7 +383,7 @@
       + '<h2>皮肤 · Skin</h2><div class="skins">' + skinMarkup() + '</div>'
       + '<h2>壁纸 · Wallpaper</h2><div class="walls">' + wallpaperMarkup() + '</div>'
       + '<h2>玻璃 · Glass</h2><div class="glass">' + glassMarkup() + '</div>'
-      + '<div class="ft"><button class="rst">恢复默认</button><span>v' + VERSION + ' · <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd></span></div>'
+      + '<div class="ft"><button class="rst">恢复默认</button><span>v' + VERSION + ' · <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd></span></div>'
       + '</div></div>'
     doc.body.appendChild(switcherHost)
 
@@ -517,7 +517,7 @@
   /* --------------------------------------------------------------- keyboard */
 
   function onKeyDown(event) {
-    if (event.ctrlKey && event.shiftKey && (event.key === 'F' || event.key === 'f')) {
+    if (event.ctrlKey && event.shiftKey && (event.key === 'U' || event.key === 'u')) {
       event.preventDefault()
       setPanelOpen(!panelOpen)
       return

@@ -80,7 +80,7 @@ test('cordis.patch.yml inserts this package into the dsh:plugin group', () => {
   const patch = readFileSync(join(PACKAGE_ROOT, 'cordis.patch.yml'), 'utf8')
   // Same shape as the reference bundle patch: an `insert` block, no group key.
   assert.match(patch, /^- insert:/mu)
-  assert.match(patch, /^ {4}- id: furina-theme$/mu)
+  assert.match(patch, /^ {4}- id: furina-dsh-theme$/mu)
   assert.match(patch, /^ {6}name: furina-dsh-theme$/mu)
   assert.match(patch, /name: furina-dsh-theme/u)
   assert.ok(!/^\uFEFF/u.test(patch), 'patch must not carry a BOM')

@@ -47,9 +47,9 @@ port 3081) driven by `tools/verify.mjs` — see [Verification](#verification).
 * **Translucent glass UI** in three strengths — `轻柔` / `标准` / `浓郁` — applied to
   the sidebar, composer, popovers and the switcher itself.
 * **An in-page switcher** in its own Shadow DOM (so the app's styles cannot leak in):
-  emblem launcher on the right edge, `Ctrl + Shift + F` anywhere, `Esc` to close.
-  Skin cards with live swatches, a wallpaper tile grid with thumbnails, glass modes,
-  and a reset.
+  emblem launcher in the bottom-right corner (lifted above the pet widget, clear of the
+  send button), `Ctrl + Shift + U` anywhere, `Esc` to close. Skin cards with live
+  swatches, a wallpaper tile grid with thumbnails, glass modes, and a reset.
 * **Persistence** in `localStorage` under `furina-theme.settings.v1`. Settings survive
   reloads; deleting the key (or the plugin) returns the GUI to stock.
 * **No residue when disabled**: every rule is scoped to `html[data-furina-skin…]`, the
@@ -71,10 +71,12 @@ The plugin is a normal DSH cordis plugin, installed into a profile with `dsh plu
 
 ```powershell
 # canonical install — straight from GitHub
+dsh plugin --profile web add https://github.com/TanPass/furina-dsh-theme
+# same package, short GitHub spec
 dsh plugin --profile web add github:TanPass/furina-dsh-theme
 
 # or, without `dsh` on PATH, through the DSH checkout's CLI entrypoint
-node "<dsh-checkout>\lib\bin.js" plugin --profile web add github:TanPass/furina-dsh-theme
+node "<dsh-checkout>\lib\bin.js" plugin --profile web add https://github.com/TanPass/furina-dsh-theme
 ```
 
 A published version can be pinned the same way, e.g.
@@ -127,9 +129,9 @@ painted immediately; with them present the theme mounted but stayed hidden.)
 
 ## Using it
 
-* **Launcher** — the Furina emblem button on the right edge, vertically centred. It
-  stays clear of the composer and the pet widget in the bottom-right corner.
-* **Keyboard** — `Ctrl + Shift + F` toggles the panel, `Esc` closes it.
+* **Launcher** — the Furina emblem button in the bottom-right corner, lifted just above
+  the pet widget so it stays clear of both the pet and the composer's send button.
+* **Keyboard** — `Ctrl + Shift + U` toggles the panel, `Esc` closes it.
 * **Panel** — skin cards (with accent swatches and a one-line description), wallpaper
   tiles (`跟随皮肤` / `无壁纸` / three art tiles / your own), glass strength, reset.
 * **Custom wallpapers** — drop `.jpg`, `.png`, `.webp` or `.avif` files into
@@ -255,7 +257,7 @@ The `cordis.patch.yml` insert was also checked against the verify profile with
 
 ```
 # == furina-dsh-theme
-- id: furina-theme
+- id: furina-dsh-theme
   name: furina-dsh-theme
 ```
 

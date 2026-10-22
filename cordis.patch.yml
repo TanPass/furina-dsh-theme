@@ -5,5 +5,5 @@
 # and one index-injection row that pulls that script into the page. Every visual
 # decision lives in `client/`; nothing here knows a class name.
 - insert:
-    - id: furina-theme
+    - id: furina-dsh-theme
       name: furina-dsh-theme
