@@ -1,0 +1,687 @@
+/* ==========================================================================
+   furina-dsh-theme — Fontainian skin pack for the DeepSeek Harness Web GUI
+   ==========================================================================
+
+   Three skins, one wallpaper layer, translucent glass.
+
+   How this file is organised:
+
+     1. palette        — the three skins, as plain `--fr-*` custom properties
+     2. glass          — how translucent a panel is, as `--fr-glass-*`
+     3. canvas         — html/body grounds, and the shell's opaque boxes
+     4. backdrop       — wallpaper layers, veil, glow, waves, crest, grain
+     5. tokens         — every DSH design token, mapped from the palette
+     6. chrome         — the handful of real selectors worth styling by hand
+     7. motion         — transitions, and the reduced-motion opt-out
+
+   Everything is scoped to `html[data-furina-skin]`, so removing the attribute
+   (or the plugin) returns the application to stock with no residue. The
+   selectors that fight stock styles use `html[data-furina-skin] body …`, which
+   outranks the shell's own `body[data-ds-dark-theme]` on specificity alone —
+   no `!important` arms race, and no `:has()` (a `:has()` anchored on <html> is
+   re-evaluated on every body mutation, which is a real cost mid-transcript).
+
+   Skins:
+     fontaine-nocturne  rain-slick neon, indigo night     accent #4ea4ef
+     hydro-iris         crystal water, ice-blue glass     accent #5fb4ff
+     salon-solitude     rose-gold salon light, lavender   accent #dea998
+   ========================================================================== */
+
+/* ------------------------------------------------------------------ 1. palette */
+
+html[data-furina-skin='fontaine-nocturne'] {
+  --fr-bg: #060a18;
+  --fr-bg-deep: #03050d;
+  --fr-bg-dark: #04060f;
+  --fr-surface: #0d152b;
+  --fr-surface-2: #121d3a;
+  --fr-overlay: #1a2747;
+  --fr-selection: #2d3c81;
+  --fr-text: #dfe8f7;
+  --fr-text-hi: #eef4ff;
+  --fr-text-2: #a8b8d8;
+  --fr-text-3: #6d7fa3;
+  --fr-muted: #4a5a80;
+  --fr-accent: #4ea4ef;
+  --fr-accent-hi: #7cc4ff;
+  --fr-accent-2: #8b6cf0;
+  --fr-accent-3: #63d6f2;
+  --fr-warm: #d9b48f;
+  --fr-bronze: #937562;
+  --fr-danger: #f26d78;
+  --fr-success: #5fd39a;
+  --fr-warn: #f2d06d;
+  --fr-info: #63d6f2;
+  --fr-glow: rgba(78, 164, 239, 0.34);
+  --fr-glow-soft: rgba(78, 164, 239, 0.2);
+}
+
+html[data-furina-skin='hydro-iris'] {
+  --fr-bg: #040612;
+  --fr-bg-deep: #01030a;
+  --fr-bg-dark: #03050e;
+  --fr-surface: #0a1229;
+  --fr-surface-2: #101a38;
+  --fr-overlay: #16234a;
+  --fr-selection: #243a86;
+  --fr-text: #edf5ff;
+  --fr-text-hi: #f4f9ff;
+  --fr-text-2: #aec4e6;
+  --fr-text-3: #6b7ea6;
+  --fr-muted: #46567c;
+  --fr-accent: #5fb4ff;
+  --fr-accent-hi: #8fe8ff;
+  --fr-accent-2: #8367ff;
+  --fr-accent-3: #a9d8ff;
+  --fr-warm: #dff1ff;
+  --fr-bronze: #f0c9d2;
+  --fr-danger: #ff7b86;
+  --fr-success: #68e6b0;
+  --fr-warn: #ffe08a;
+  --fr-info: #8fe8ff;
+  --fr-glow: rgba(95, 180, 255, 0.38);
+  --fr-glow-soft: rgba(95, 180, 255, 0.22);
+}
+
+html[data-furina-skin='salon-solitude'] {
+  --fr-bg: #101322;
+  --fr-bg-deep: #090b15;
+  --fr-bg-dark: #0c0f1b;
+  --fr-surface: #171c31;
+  --fr-surface-2: #1e2440;
+  --fr-overlay: #262c4a;
+  --fr-selection: #3a3f63;
+  --fr-text: #f2edf0;
+  --fr-text-hi: #faf6f8;
+  --fr-text-2: #c9c3d6;
+  --fr-text-3: #8b86a0;
+  --fr-muted: #5e5a78;
+  --fr-accent: #dea998;
+  --fr-accent-hi: #f0c9b6;
+  --fr-accent-2: #c79bd6;
+  --fr-accent-3: #d9b48f;
+  --fr-warm: #e8cd9b;
+  --fr-bronze: #a9855f;
+  --fr-danger: #e8807f;
+  --fr-success: #93c9a8;
+  --fr-warn: #e8cd9b;
+  --fr-info: #8fa9dd;
+  --fr-glow: rgba(222, 169, 152, 0.3);
+  --fr-glow-soft: rgba(222, 169, 152, 0.18);
+}
+
+/* ------------------------------------------------------------------- 2. glass */
+
+/* One knob for the whole skin: how much of the app is the app's own fill and
+   how much is the wallpaper coming through it. Every translucent surface in
+   section 5 is derived from these four numbers. */
+html[data-furina-skin] {
+  --fr-blur: 16px;
+  --fr-sat: 128%;
+  --fr-g1: 70%;
+  --fr-g2: 78%;
+  --fr-g3: 88%;
+  --fr-g-soft: 72%;
+  --fr-line: color-mix(in srgb, var(--fr-text) 14%, transparent);
+  --fr-line-strong: color-mix(in srgb, var(--fr-accent) 42%, transparent);
+  --fr-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+  --fr-ease: cubic-bezier(0.22, 0.9, 0.16, 1);
+}
+
+html[data-furina-glass='soft'] {
+  --fr-blur: 8px;
+  --fr-sat: 118%;
+  --fr-g1: 54%;
+  --fr-g2: 64%;
+  --fr-g3: 76%;
+  --fr-g-soft: 58%;
+}
+
+html[data-furina-glass='rich'] {
+  --fr-blur: 26px;
+  --fr-sat: 142%;
+  --fr-g1: 84%;
+  --fr-g2: 90%;
+  --fr-g3: 96%;
+  --fr-g-soft: 88%;
+}
+
+/* ------------------------------------------------------------------ 3. canvas */
+
+html[data-furina-skin] {
+  background-color: var(--fr-bg-deep);
+  color-scheme: dark;
+}
+
+/* The shell paints an opaque ground on body, the frame and the conversation
+   column. All of them go transparent so the backdrop (z-index -1) is the ground. */
+html[data-furina-skin] body,
+html[data-furina-skin] body [data-slot='root'] > div,
+html[data-furina-skin] body [class*='centerCol'],
+html[data-furina-skin] body [data-phase],
+html[data-furina-skin] body [data-slot='main'],
+html[data-furina-skin] body [data-slot='main.conversation'] {
+  background-color: transparent;
+}
+
+html[data-furina-skin] body {
+  color: var(--fr-text);
+  font-feature-settings: 'ss01' 1, 'cv01' 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+html[data-furina-skin] ::selection {
+  background: color-mix(in srgb, var(--fr-accent) 34%, transparent);
+  color: var(--fr-text-hi);
+}
+
+/* ---------------------------------------------------------------- 4. backdrop */
+
+#furina-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  background:
+    radial-gradient(130% 100% at 78% -10%, color-mix(in srgb, var(--fr-accent) 16%, transparent), transparent 62%),
+    radial-gradient(120% 90% at 8% 108%, color-mix(in srgb, var(--fr-accent-2) 14%, transparent), transparent 60%),
+    linear-gradient(168deg, var(--fr-bg-dark), var(--fr-bg-deep));
+}
+
+#furina-backdrop .fr-wp {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transform: scale(1.035);
+  transition: opacity 900ms var(--fr-ease);
+  will-change: opacity;
+}
+
+#furina-backdrop .fr-wp.fr-on {
+  opacity: 1;
+}
+
+/* No wallpaper chosen: the gradient above is the whole ground. */
+#furina-backdrop.fr-flat .fr-wp {
+  opacity: 0;
+}
+
+/* Legibility veil. A vertical scrim plus a corner vignette: the wallpaper stays
+   readable as art while body text keeps its contrast ratio over any crop. */
+#furina-backdrop .fr-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--fr-bg-deep) 80%, transparent) 0%,
+      color-mix(in srgb, var(--fr-bg) 40%, transparent) 34%,
+      color-mix(in srgb, var(--fr-bg-deep) 74%, transparent) 100%
+    ),
+    radial-gradient(120% 96% at 50% 46%, transparent 34%, color-mix(in srgb, var(--fr-bg-deep) 62%, transparent) 100%);
+}
+
+/* Accent bloom in the top-right, screen-blended so it reads as light rather
+   than as paint. */
+#furina-backdrop .fr-glow {
+  position: absolute;
+  inset: -20% -10% auto auto;
+  width: 78vw;
+  height: 78vw;
+  max-width: 1100px;
+  max-height: 1100px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in srgb, var(--fr-accent) 30%, transparent) 0%,
+    color-mix(in srgb, var(--fr-accent) 8%, transparent) 42%,
+    transparent 70%
+  );
+  mix-blend-mode: screen;
+  opacity: 0.7;
+  animation: fr-breathe 14s ease-in-out infinite alternate;
+}
+
+@keyframes fr-breathe {
+  from { opacity: 0.5; transform: translate3d(0, 0, 0) scale(1); }
+  to   { opacity: 0.78; transform: translate3d(-2%, 2%, 0) scale(1.06); }
+}
+
+/* Two hair-thin wave bands along the bottom, drawn as an alpha mask so the
+   colour always comes from the active skin's accent. */
+#furina-backdrop .fr-waves {
+  position: absolute;
+  left: -2%;
+  right: -2%;
+  bottom: -1px;
+  height: 26vh;
+  background-color: var(--fr-accent);
+  opacity: 0.16;
+  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 220' preserveAspectRatio='none'%3E%3Cpath d='M0 132 C 180 92 300 168 470 150 C 640 132 760 66 930 84 C 1100 102 1250 176 1440 140 L1440 220 L0 220 Z' fill='%23fff' fill-opacity='0.5'/%3E%3Cpath d='M0 178 C 200 148 340 196 520 182 C 700 168 820 122 1000 136 C 1180 150 1300 196 1440 176 L1440 220 L0 220 Z' fill='%23fff' fill-opacity='0.28'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 220' preserveAspectRatio='none'%3E%3Cpath d='M0 132 C 180 92 300 168 470 150 C 640 132 760 66 930 84 C 1100 102 1250 176 1440 140 L1440 220 L0 220 Z' fill='%23fff' fill-opacity='0.5'/%3E%3Cpath d='M0 178 C 200 148 340 196 520 182 C 700 168 820 122 1000 136 C 1180 150 1300 196 1440 176 L1440 220 L0 220 Z' fill='%23fff' fill-opacity='0.28'/%3E%3C/svg%3E");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* The Fontaine crest, etched into the right edge of the conversation area as a
+   watermark. `mask` keeps it a silhouette so one asset serves all three skins. */
+#furina-backdrop .fr-crest-mark {
+  position: absolute;
+  right: -60px;
+  top: 12%;
+  width: 62vh;
+  height: 62vh;
+  min-width: 380px;
+  min-height: 380px;
+  background-color: color-mix(in srgb, var(--fr-accent) 62%, var(--fr-text));
+  opacity: 0.1;
+  -webkit-mask: url(/furina-theme/assets/emblem.svg) center / contain no-repeat;
+  mask: url(/furina-theme/assets/emblem.svg) center / contain no-repeat;
+}
+
+/* Screen texture: one repeating gradient, painted once, no animation. */
+#furina-backdrop .fr-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  background-image: repeating-linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.16) 0 1px,
+    rgba(0, 0, 0, 0) 1px 3px
+  );
+}
+
+/* Boot fade: the decoration arrives with the skin, not in a flash. */
+html[data-furina-boot] #furina-backdrop .fr-veil,
+html[data-furina-boot] #furina-backdrop .fr-glow,
+html[data-furina-boot] #furina-backdrop .fr-waves,
+html[data-furina-boot] #furina-backdrop .fr-crest-mark {
+  opacity: 0;
+}
+
+/* ------------------------------------------------------------------ 5. tokens */
+
+/* Stock `.ai`/shell fills, re-derived from the palette. Each surface is
+   `color-mix(surface α%, transparent)` so the wallpaper shows through, and the
+   border set carries a hydro tint instead of stock grey. */
+html[data-furina-skin] body {
+  /* grounds */
+  --dsw-alias-bg-base: transparent;
+  --dsw-alias-bg-document-preview: color-mix(in srgb, var(--fr-bg) 94%, transparent);
+  --dsw-alias-bg-document-selection: color-mix(in srgb, var(--fr-selection) 46%, transparent);
+  --dsw-alias-bg-layer-1: color-mix(in srgb, var(--fr-surface) var(--fr-g1), transparent);
+  --dsw-alias-bg-layer-2: color-mix(in srgb, var(--fr-surface) var(--fr-g2), transparent);
+  --dsw-alias-bg-layer-3: color-mix(in srgb, var(--fr-surface-2) var(--fr-g3), transparent);
+  --dsw-alias-bg-mask-1: color-mix(in srgb, var(--fr-bg-deep) 56%, transparent);
+  --dsw-alias-bg-mask-2: color-mix(in srgb, var(--fr-bg-deep) 32%, transparent);
+  --dsw-alias-bg-mask-3: color-mix(in srgb, var(--fr-bg-deep) 70%, transparent);
+  --dsw-alias-bg-mask-drop: color-mix(in srgb, var(--fr-bg-dark) 74%, transparent);
+  --dsw-alias-bg-mask-photo: color-mix(in srgb, var(--fr-bg-deep) 90%, transparent);
+  --dsw-alias-bg-module-platform: color-mix(in srgb, var(--fr-surface) 92%, transparent);
+  --dsw-alias-bg-multi-select: color-mix(in srgb, var(--fr-surface-2) 92%, transparent);
+  --dsw-alias-bg-overlay: color-mix(in srgb, var(--fr-bg-dark) 95%, transparent);
+  --dsw-alias-bg-skeleton: color-mix(in srgb, var(--fr-accent) 9%, transparent);
+
+  /* borders */
+  --dsw-alias-border-inverted: color-mix(in srgb, var(--fr-text) 6%, transparent);
+  --dsw-alias-border-inverted2: color-mix(in srgb, var(--fr-text) 10%, transparent);
+  --dsw-alias-border-l1: color-mix(in srgb, var(--fr-text) 11%, transparent);
+  --dsw-alias-border-l2: color-mix(in srgb, var(--fr-text) 18%, transparent);
+  --dsw-alias-border-l2-darkmode-thin: color-mix(in srgb, var(--fr-text) 13%, transparent);
+  --dsw-alias-border-l3: color-mix(in srgb, var(--fr-accent) 46%, transparent);
+  --dsw-alias-border-l4: color-mix(in srgb, var(--fr-text) 26%, transparent);
+
+  /* brand + buttons */
+  --dsw-alias-brand-primary: var(--fr-accent);
+  --dsw-alias-brand-primary-invert: var(--fr-text);
+  --dsw-alias-brand-primary-new-colorprimary-new-color: var(--fr-accent);
+  --dsw-alias-brand-text: var(--fr-bg-deep);
+  --dsw-alias-button-primary-fill: var(--fr-accent);
+  --dsw-alias-button-primary-hover: var(--fr-accent-hi);
+  --dsw-alias-button-primary-dimmed: color-mix(in srgb, var(--fr-accent) 38%, transparent);
+  --dsw-alias-button-contrast-fill: var(--fr-text);
+  --dsw-alias-button-elevated-fill: color-mix(in srgb, var(--fr-surface-2) 92%, transparent);
+  --dsw-alias-button-floating-fill: color-mix(in srgb, var(--fr-surface) 94%, transparent);
+  --dsw-alias-button-floating-hover: color-mix(in srgb, var(--fr-overlay) 96%, transparent);
+  --dsw-alias-button-info-fill: var(--fr-accent);
+  --dsw-alias-button-info-hover: var(--fr-accent-hi);
+  --dsw-alias-button-ghost-active-fill: color-mix(in srgb, var(--fr-accent) 15%, transparent);
+  --dsw-alias-button-ghost-active-hover: color-mix(in srgb, var(--fr-accent) 22%, transparent);
+  --dsw-alias-button-ghost-active-border: color-mix(in srgb, var(--fr-accent) 46%, transparent);
+  --dsw-alias-button-tool-bar-fill: color-mix(in srgb, var(--fr-surface) 74%, transparent);
+  --dsw-alias-button-tool-bar-fill-invisible: transparent;
+  --dsw-alias-button-tool-bar-hover: color-mix(in srgb, var(--fr-accent) 16%, transparent);
+
+  /* interaction */
+  --dsw-alias-interactive-bg-hover: color-mix(in srgb, var(--fr-accent) 8%, transparent);
+  --dsw-alias-interactive-bg-hover-accent: color-mix(in srgb, var(--fr-accent) 14%, transparent);
+  --dsw-alias-interactive-bg-hover-danger: color-mix(in srgb, var(--fr-danger) 18%, transparent);
+  --dsw-alias-interactive-bg-hover-solid: color-mix(in srgb, var(--fr-surface-2) 94%, transparent);
+  --dsw-alias-interactive-bg-active: color-mix(in srgb, var(--fr-accent) 18%, transparent);
+
+  /* labels */
+  --dsw-alias-label-primary: var(--fr-text);
+  --dsw-alias-label-primary-bluish: var(--fr-text-hi);
+  --dsw-alias-label-primary-dimmed: color-mix(in srgb, var(--fr-text) 84%, transparent);
+  --dsw-alias-label-primary-foreground: var(--fr-bg-deep);
+  --dsw-alias-label-primary-inverted: var(--fr-bg-deep);
+  --dsw-alias-label-secondary: var(--fr-text-2);
+  --dsw-alias-label-tertiary: var(--fr-text-3);
+  --dsw-alias-label-caption: color-mix(in srgb, var(--fr-text-3) 88%, transparent);
+  --dsw-alias-label-dimmed: color-mix(in srgb, var(--fr-muted) 92%, transparent);
+  --dsw-alias-label-deep-diving: var(--fr-accent-hi);
+  --dsw-alias-label-deep-diving-shimmer: color-mix(in srgb, var(--fr-accent) 62%, var(--fr-text-3));
+  --dsw-alias-label-shimmer: color-mix(in srgb, var(--fr-accent) 36%, transparent);
+  --dsw-alias-label-document-preview: var(--fr-text-2);
+  --dsw-alias-link: var(--fr-accent);
+  --dsw-alias-menu-icon: var(--fr-text-2);
+
+  /* markdown */
+  --dsw-alias-markdown-citation: color-mix(in srgb, var(--fr-surface-2) 90%, transparent);
+  --dsw-alias-markdown-code-block: color-mix(in srgb, var(--fr-bg-deep) 76%, transparent);
+  --dsw-alias-markdown-code-block-banner: color-mix(in srgb, var(--fr-surface-2) 92%, transparent);
+  --dsw-alias-markdown-code-segment-selected: color-mix(in srgb, var(--fr-accent) 17%, transparent);
+  --dsw-alias-markdown-code-segment-unselected: color-mix(in srgb, var(--fr-surface-2) 62%, transparent);
+  --dsw-alias-markdown-inline-code: color-mix(in srgb, var(--fr-accent) 10%, transparent);
+  --dsw-alias-markdown-placeholder: color-mix(in srgb, var(--fr-surface-2) 92%, transparent);
+  --dsw-alias-markdown-tag: color-mix(in srgb, var(--fr-accent) 12%, transparent);
+
+  /* scrollbar */
+  --dsw-alias-scrollbar-bg-l1: color-mix(in srgb, var(--fr-accent) 24%, transparent);
+  --dsw-alias-scrollbar-bg-l2: color-mix(in srgb, var(--fr-text) 18%, transparent);
+  --dsw-alias-scrollbar-hover-l1: color-mix(in srgb, var(--fr-accent) 52%, transparent);
+  --dsw-alias-scrollbar-hover-l2: color-mix(in srgb, var(--fr-text) 34%, transparent);
+  --dsh-scrollbar-thumb: color-mix(in srgb, var(--fr-accent) 26%, transparent);
+  --dsh-scrollbar-thumb-hover: color-mix(in srgb, var(--fr-accent) 54%, transparent);
+
+  /* states */
+  --dsw-alias-state-business-primary: var(--fr-accent);
+  --dsw-alias-state-business-tertiary: color-mix(in srgb, var(--fr-accent) 15%, transparent);
+  --dsw-alias-state-error-primary: var(--fr-danger);
+  --dsw-alias-state-error-secondary: var(--fr-danger);
+  --dsw-alias-state-idle-primary: color-mix(in srgb, var(--fr-muted) 92%, transparent);
+  --dsw-alias-state-success-primary: var(--fr-success);
+  --dsw-alias-state-success-secondary: color-mix(in srgb, var(--fr-success) 78%, var(--fr-text));
+  --dsw-alias-state-success-tertiary: color-mix(in srgb, var(--fr-success) 20%, var(--fr-bg-deep));
+  --dsw-alias-state-warn-label: var(--fr-warn);
+  --dsw-alias-state-warn-primary: var(--fr-warn);
+  --dsw-alias-state-warn-secondary: color-mix(in srgb, var(--fr-warn) 72%, var(--fr-text));
+  --dsw-alias-state-warn-tertiary: color-mix(in srgb, var(--fr-warn) 20%, var(--fr-bg-deep));
+
+  /* misc surfaces */
+  --dsw-alias-switch-thumb: var(--fr-text);
+  --dsw-alias-toast-bg: color-mix(in srgb, var(--fr-surface-2) 97%, transparent);
+  --dsw-alias-toast-label: var(--fr-text);
+  --dsw-alias-tooltip-bg: color-mix(in srgb, var(--fr-bg-dark) 97%, transparent);
+  --dsw-alias-tooltip-key-bg: color-mix(in srgb, var(--fr-accent) 15%, transparent);
+  --dsw-alias-turn-trigger-bg: color-mix(in srgb, var(--fr-accent) 9%, transparent);
+  --dsw-alias-turn-trigger-bg-hover: color-mix(in srgb, var(--fr-accent) 18%, transparent);
+
+  /* diffs */
+  --dsw-alias-code-diff-added: color-mix(in srgb, var(--fr-success) 13%, transparent);
+  --dsw-alias-code-diff-deleted: color-mix(in srgb, var(--fr-danger) 13%, transparent);
+  --dsw-alias-file-diff-added-bg: color-mix(in srgb, var(--fr-success) 16%, var(--fr-bg-deep));
+  --dsw-alias-file-diff-added-gutter: color-mix(in srgb, var(--fr-success) 10%, var(--fr-bg-deep));
+  --dsw-alias-file-diff-added-marker: var(--fr-success);
+  --dsw-alias-file-diff-deleted-bg: color-mix(in srgb, var(--fr-danger) 16%, var(--fr-bg-deep));
+  --dsw-alias-file-diff-deleted-gutter: color-mix(in srgb, var(--fr-danger) 10%, var(--fr-bg-deep));
+  --dsw-alias-file-diff-deleted-marker: var(--fr-danger);
+
+  /* specific surfaces: the ones the shell names itself */
+  --dsw-specific-bubble: color-mix(in srgb, var(--fr-surface-2) var(--fr-g2), transparent);
+  --dsw-specific-bubble-highlight: color-mix(in srgb, var(--fr-accent) 17%, transparent);
+  --dsw-specific-input-major: color-mix(in srgb, var(--fr-bg-dark) var(--fr-g1), transparent);
+  --dsw-specific-login-input: color-mix(in srgb, var(--fr-surface) 92%, transparent);
+  --dsw-specific-menu: color-mix(in srgb, var(--fr-bg-dark) 92%, transparent);
+  --dsw-menu-surface-fill: color-mix(in srgb, var(--fr-bg-dark) 92%, transparent);
+  --dsw-alias-menu-group-header-fill: color-mix(in srgb, var(--fr-surface) 96%, transparent);
+  --dsw-specific-selector: color-mix(in srgb, var(--fr-accent) 18%, transparent);
+  --dsw-specific-sidebar-fill: color-mix(in srgb, var(--fr-bg-deep) var(--fr-g-soft), transparent);
+  --dsw-specific-sidebar-nav-item-active: color-mix(in srgb, var(--fr-accent) 15%, transparent);
+  --dsw-specific-sidebar-nav-item-active-accent: color-mix(in srgb, var(--fr-accent) 22%, transparent);
+  --dsw-specific-sidebar-nav-item-hover: color-mix(in srgb, var(--fr-accent) 8%, transparent);
+  --dsw-specific-tip: color-mix(in srgb, var(--fr-surface-2) 92%, transparent);
+  --dsw-alias-settings-card-fill: color-mix(in srgb, var(--fr-surface) var(--fr-g2), transparent);
+  --dsw-alias-settings-card-stroke: color-mix(in srgb, var(--fr-text) 14%, transparent);
+
+  /* onboarding */
+  --dsw-alias-onboarding-accent: var(--fr-accent);
+  --dsw-alias-onboarding-card-fill: color-mix(in srgb, var(--fr-bg) 93%, transparent);
+  --dsw-alias-onboarding-secondary-fill: color-mix(in srgb, var(--fr-surface-2) 95%, transparent);
+  --dsw-alias-onboarding-checkbox-border: color-mix(in srgb, var(--fr-accent) 42%, transparent);
+
+  /* elevation */
+  --dsw-elevation-stroke: color-mix(in srgb, var(--fr-text) 15%, transparent);
+  --dsw-elevation-stroke-color: color-mix(in srgb, var(--fr-text) 15%, transparent);
+  --dsw-elevation-soft: 0 2px 10px rgba(0, 0, 0, 0.32);
+  --dsw-elevation-panel: 0 12px 34px rgba(0, 0, 0, 0.46);
+  --dsw-elevation-prominent: 0 20px 54px rgba(0, 0, 0, 0.56);
+  --dsw-shadow-lv2: 0 8px 28px rgba(0, 0, 0, 0.48);
+  --dsw-shadow-lv3: 0 0 0 1px color-mix(in srgb, var(--fr-text) 14%, transparent), 0 18px 46px rgba(0, 0, 0, 0.55);
+  --dsw-menu-backdrop-filter: blur(var(--fr-blur)) saturate(var(--fr-sat));
+
+  /* thinking / shimmer gradients */
+  --dsw-linear-gradient-think: linear-gradient(180deg, var(--fr-bg-dark) 20%, transparent);
+  --dsw-linear-think-select: linear-gradient(180deg, color-mix(in srgb, var(--fr-surface) 95%, transparent) 20%, transparent);
+
+  /* radii: Fontaine is rounder than stock — glass, not slate */
+  --dsw-radius-xs: 5px;
+  --dsw-radius-sm: 7px;
+  --dsw-radius-md: 10px;
+  --dsw-radius-lg: 14px;
+  --dsw-radius-xl: 18px;
+  --dsw-radius-panel: 16px;
+}
+
+/* A light-mode shell keeps the skin: the palette is one palette, and its text
+   colours are already measured against its own grounds. */
+html[data-furina-skin] body:not([data-ds-dark-theme]) {
+  color-scheme: dark;
+}
+
+/* ------------------------------------------------------------------ 6. chrome */
+
+/* --- sidebar ------------------------------------------------------------ */
+
+/* No backdrop-filter here on purpose: the sidebar is a full-height element
+   whose width animates on collapse, and a backdrop-filter layer would be
+   re-rasterised on every frame of that animation. A tinted fill over the
+   wallpaper is the same look at no per-frame cost. */
+html[data-furina-skin] body [data-slot='sidebar'] > div {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--fr-bg-deep) var(--fr-g-soft), transparent),
+    color-mix(in srgb, var(--fr-bg) var(--fr-g-soft), transparent)
+  );
+  border-right: 1px solid color-mix(in srgb, var(--fr-accent) 18%, transparent);
+  box-shadow: 1px 0 0 color-mix(in srgb, var(--fr-text) 5%, transparent) inset;
+}
+
+html[data-furina-skin] body [data-slot='sidebar'] [data-window-drag] > button[class*='brand'],
+html[data-furina-skin] body [data-slot='sidebar'] [data-window-drag] [class*='brandIdentity'] {
+  letter-spacing: 0.06em;
+}
+
+html[data-furina-skin] body button[class*='newSession'] {
+  background: linear-gradient(135deg, var(--fr-accent), color-mix(in srgb, var(--fr-accent-2) 55%, var(--fr-accent)));
+  color: var(--fr-bg-deep);
+  border: 1px solid color-mix(in srgb, var(--fr-accent-hi) 70%, transparent);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--fr-accent) 30%, transparent);
+  transition: transform 180ms var(--fr-ease), box-shadow 180ms var(--fr-ease);
+}
+
+html[data-furina-skin] body button[class*='newSession']:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--fr-accent) 42%, transparent);
+}
+
+html[data-furina-skin] body nav[class*='panelList'] button[class*='panelRow'] {
+  border-radius: var(--dsw-radius-md);
+  transition: background 160ms var(--fr-ease), color 160ms var(--fr-ease);
+}
+
+html[data-furina-skin] body nav[class*='panelList'] button[class*='panelRow'][aria-current],
+html[data-furina-skin] body nav[class*='panelList'] button[class*='panelRow'][data-active='true'] {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--fr-accent) 20%, transparent),
+    color-mix(in srgb, var(--fr-accent) 6%, transparent)
+  );
+  box-shadow: inset 2px 0 0 var(--fr-accent);
+}
+
+/* --- top bar / conversation header -------------------------------------- */
+
+html[data-furina-skin] body [data-slot='conversation.header'] > header,
+html[data-furina-skin] body [class*='centerCol'] header[data-window-drag] {
+  background: color-mix(in srgb, var(--fr-bg-deep) 62%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--fr-accent) 14%, transparent);
+  backdrop-filter: blur(10px) saturate(120%);
+}
+
+/* --- composer ----------------------------------------------------------- */
+
+html[data-furina-skin] body [data-slot='conversation.composer'] [class*='inputWrap'],
+html[data-furina-skin] body [data-slot='conversation.composer'] [class*='composerBar'],
+html[data-furina-skin] body [data-slot='conversation.input.dock'] > div > div {
+  background: color-mix(in srgb, var(--fr-bg-dark) var(--fr-g2), transparent);
+  border: 1px solid color-mix(in srgb, var(--fr-accent) 24%, transparent);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.42),
+    0 0 0 1px color-mix(in srgb, var(--fr-text) 4%, transparent) inset,
+    0 0 24px color-mix(in srgb, var(--fr-accent) 10%, transparent);
+  backdrop-filter: blur(var(--fr-blur)) saturate(var(--fr-sat));
+  transition: border-color 200ms var(--fr-ease), box-shadow 200ms var(--fr-ease);
+}
+
+html[data-furina-skin] body [data-slot='conversation.composer'] [class*='inputWrap']:focus-within,
+html[data-furina-skin] body [data-slot='conversation.composer'] [class*='composerBar']:focus-within {
+  border-color: color-mix(in srgb, var(--fr-accent) 62%, transparent);
+  box-shadow:
+    0 12px 34px rgba(0, 0, 0, 0.46),
+    0 0 0 1px color-mix(in srgb, var(--fr-accent) 40%, transparent) inset,
+    0 0 30px color-mix(in srgb, var(--fr-accent) 20%, transparent);
+}
+
+html[data-furina-skin] body [data-slot='conversation.composer'] textarea,
+html[data-furina-skin] body [data-slot='conversation.composer'] [contenteditable='true'] {
+  background: transparent;
+  color: var(--fr-text);
+  caret-color: var(--fr-accent);
+}
+
+/* --- turn rail ---------------------------------------------------------- */
+
+/* A hydro filament down the left edge of every completed turn.
+   `border-image` rather than a pseudo-element: a `::before` here would be
+   absolutely positioned against whatever ancestor happens to establish a
+   containing block, and on this shell that is the scroll container — a line
+   that scrolls away from its turn. The border hugs the box the shell already
+   lays out, so it cannot drift. */
+html[data-furina-skin] body [class*='flowItem'][data-chat-turn] {
+  border-left: 1px solid transparent;
+  border-image: linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in srgb, var(--fr-accent) 52%, transparent) 18%,
+      color-mix(in srgb, var(--fr-accent-2) 40%, transparent) 82%,
+      transparent
+    ) 1;
+}
+
+/* --- markdown polish ---------------------------------------------------- */
+
+html[data-furina-skin] body [class*='MarkdownText'] :is(h1, h2, h3, h4),
+html[data-furina-skin] body [class*='markdown'] :is(h1, h2, h3, h4) {
+  letter-spacing: 0.01em;
+}
+
+html[data-furina-skin] body [class*='MarkdownText'] hr,
+html[data-furina-skin] body [class*='markdown'] hr {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--fr-accent) 44%, transparent),
+    transparent
+  );
+}
+
+html[data-furina-skin] body [class*='MarkdownText'] blockquote,
+html[data-furina-skin] body [class*='markdown'] blockquote {
+  border-left: 2px solid color-mix(in srgb, var(--fr-accent) 50%, transparent);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--fr-accent) 7%, transparent),
+    transparent 70%
+  );
+  border-radius: 0 var(--dsw-radius-sm) var(--dsw-radius-sm) 0;
+}
+
+html[data-furina-skin] body [class*='MarkdownText'] table th,
+html[data-furina-skin] body [class*='markdown'] table th {
+  background: color-mix(in srgb, var(--fr-accent) 9%, transparent);
+}
+
+html[data-furina-skin] body ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+html[data-furina-skin] body ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html[data-furina-skin] body ::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+  background-color: var(--dsh-scrollbar-thumb);
+}
+
+html[data-furina-skin] body ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--dsh-scrollbar-thumb-hover);
+}
+
+/* --- focus -------------------------------------------------------------- */
+
+html[data-furina-skin] body :is(button, [role='button'], input, textarea, [tabindex]):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--fr-accent) 72%, transparent);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ 7. motion */
+
+/* The theme's own transitions only. Nothing here animates layout or paint on
+   scroll; the only forever-running animation is the accent bloom, which is a
+   single compositor-friendly opacity/transform loop. */
+html[data-furina-skin='fontaine-nocturne'] #furina-backdrop .fr-waves { opacity: 0.17; }
+html[data-furina-skin='hydro-iris'] #furina-backdrop .fr-waves { opacity: 0.2; }
+html[data-furina-skin='salon-solitude'] #furina-backdrop .fr-waves { opacity: 0.13; }
+
+@media (prefers-reduced-motion: reduce) {
+  #furina-backdrop .fr-wp,
+  #furina-backdrop .fr-glow {
+    animation: none;
+    transition: none;
+  }
+
+  html[data-furina-skin] body button[class*='newSession'],
+  html[data-furina-skin] body [data-slot='conversation.composer'] [class*='inputWrap'] {
+    transition: none;
+  }
+}
+
+@media (max-width: 900px) {
+  #furina-backdrop .fr-crest-mark {
+    opacity: 0.06;
+    right: -18vw;
+  }
+}

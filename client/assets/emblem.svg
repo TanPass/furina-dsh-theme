@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-labelledby="title desc">
+  <title id="title">Fontaine crest — fleur-de-lis</title>
+  <desc id="desc">Hand-authored fleur-de-lis in hydro blue with warm gold outline for the Furina theme packs.</desc>
+  <defs>
+    <linearGradient id="hydro" x1="0.15" y1="0" x2="0.75" y2="1">
+      <stop offset="0" stop-color="#d6efff"/>
+      <stop offset="0.32" stop-color="#93d0ff"/>
+      <stop offset="0.64" stop-color="#4ea4ef"/>
+      <stop offset="1" stop-color="#2b5fb8"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0" stop-color="#e9cba8"/>
+      <stop offset="0.5" stop-color="#d9b48f"/>
+      <stop offset="1" stop-color="#a8835f"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.5"/>
+      <stop offset="0.65" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <g stroke="url(#gold)" stroke-width="7.5" stroke-linejoin="round" stroke-linecap="round" fill="url(#hydro)">
+    <!-- lateral petals -->
+    <g transform="translate(156 306) rotate(-38) scale(0.80 1.02)">
+      <path d="M0 -100 C42 -52 70 4 70 48 C70 84 40 108 0 108 C-40 108 -70 84 -70 48 C-70 4 -42 -52 0 -100 Z"/>
+    </g>
+    <g transform="translate(356 306) rotate(38) scale(0.80 1.02)">
+      <path d="M0 -100 C42 -52 70 4 70 48 C70 84 40 108 0 108 C-40 108 -70 84 -70 48 C-70 4 -42 -52 0 -100 Z"/>
+    </g>
+
+    <!-- central spear petal -->
+    <g transform="translate(256 246) scale(1.10 1.35)">
+      <path d="M0 -100 C42 -52 70 4 70 48 C70 84 40 108 0 108 C-40 108 -70 84 -70 48 C-70 4 -42 -52 0 -100 Z"/>
+    </g>
+
+    <!-- stem / lower point -->
+    <path d="M256 472 C 238 438 228 410 226 384 L 286 384 C 284 410 274 438 256 472 Z"/>
+
+    <!-- band across the waist -->
+    <path d="M 152 358 C 202 346 310 346 360 358 L 360 388 C 310 376 202 376 152 388 Z"/>
+  </g>
+
+  <!-- glass highlight on the central petal -->
+  <path d="M250 158 C 238 208 231 258 234 300" fill="none" stroke="url(#shine)" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- fine gold hairlines -->
+  <g fill="none" stroke="#e7c7a2" stroke-width="2.4" stroke-linecap="round" opacity="0.92">
+    <path d="M 196 368 C 236 361 276 361 316 368"/>
+    <path d="M256 300 C 250 316 246 332 245 346"/>
+  </g>
+</svg>

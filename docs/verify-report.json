@@ -1,0 +1,182 @@
+{
+  "ok": true,
+  "generatedAt": "2026-10-22T13:10:58.919Z",
+  "url": "http://127.0.0.1:3081/",
+  "viewport": {
+    "width": 1600,
+    "height": 900
+  },
+  "edge": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+  "diagnostics": {
+    "url": "http://127.0.0.1:3081/",
+    "title": "DeepSeek Harness",
+    "skin": "fontaine-nocturne",
+    "wallpaper": "auto",
+    "glass": "standard",
+    "storage": "{\"skin\":\"fontaine-nocturne\",\"wallpaper\":\"auto\",\"glass\":\"standard\"}",
+    "api": "object",
+    "backdropConnected": true,
+    "backdropZ": "-1",
+    "backdropVisible": true,
+    "activeWallpaper": "url(\"http://127.0.0.1:3081/furina-theme/assets/wallpapers/furina-01-city-noir.jpg\")",
+    "switcher": {
+      "inserted": true,
+      "skinButtons": 3,
+      "wallpaperButtons": 5,
+      "glassButtons": 3,
+      "thumbs": 5,
+      "launcher": true,
+      "open": false
+    },
+    "tokens": {
+      "accent": "#4ea4ef",
+      "layer1": "color-mix(in srgb, #0d152b 70%, transparent)",
+      "label": "#dfe8f7",
+      "frAccent": "#4ea4ef"
+    },
+    "computed": {
+      "bodyBg": "rgba(0, 0, 0, 0)",
+      "centerBg": "rgba(0, 0, 0, 0)",
+      "composerBorder": null
+    },
+    "otherThemes": [
+      "data-fairy-ui-ready"
+    ],
+    "competition": {
+      "inlineHtmlStyle": "color-scheme: light;",
+      "inlineBodyStyle": "--dsh-content-font-size: 14px; --dsh-code-font-size: 11px; --dsh-terminal-font-size: 13px;",
+      "sheets": [
+        "http://127.0.0.1:3081/assets/vendor-DV2921Zo.css",
+        "http://127.0.0.1:3081/assets/index-BxpfOGf3.css",
+        "http://127.0.0.1:3081/furina-theme/theme.css"
+      ],
+      "styleTags": 170,
+      "furinaLinkIndex": 2,
+      "styleSheetCount": 3
+    }
+  },
+  "checks": [
+    {
+      "name": "browser half mounted (sheet + backdrop + switcher)",
+      "ok": true,
+      "detail": {
+        "sheet": true,
+        "backdrop": true,
+        "switcher": true,
+        "skin": "fontaine-nocturne"
+      }
+    },
+    {
+      "name": "skin attribute present",
+      "ok": true,
+      "detail": "fontaine-nocturne"
+    },
+    {
+      "name": "theme tokens reach the app",
+      "ok": true,
+      "detail": "#4ea4ef"
+    },
+    {
+      "name": "wallpaper layer is on",
+      "ok": true,
+      "detail": "url(\"http://127.0.0.1:3081/furina-theme/assets/wallpapers/furina-01-city-noir.jpg\")"
+    },
+    {
+      "name": "backdrop sits behind the app",
+      "ok": true,
+      "detail": "-1"
+    },
+    {
+      "name": "switcher is a shadow-root panel with every choice",
+      "ok": true,
+      "detail": {
+        "inserted": true,
+        "skinButtons": 3,
+        "wallpaperButtons": 5,
+        "glassButtons": 3,
+        "thumbs": 5,
+        "launcher": true,
+        "open": false
+      }
+    },
+    {
+      "name": "body ground is transparent (wallpaper shows through)",
+      "ok": true,
+      "detail": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "name": "skin fontaine-nocturne applied in place",
+      "ok": true,
+      "detail": "fontaine-nocturne"
+    },
+    {
+      "name": "skin hydro-iris applied in place",
+      "ok": true,
+      "detail": "hydro-iris"
+    },
+    {
+      "name": "skin salon-solitude applied in place",
+      "ok": true,
+      "detail": "salon-solitude"
+    },
+    {
+      "name": "switcher panel opens",
+      "ok": true,
+      "detail": {
+        "open": true,
+        "glass": "rich"
+      }
+    },
+    {
+      "name": "wallpaper changes independently of the skin",
+      "ok": true,
+      "detail": {
+        "skin": "fontaine-nocturne",
+        "wallpaper": "salon-solitude",
+        "art": "url(\"http://127.0.0.1:3081/furina-theme/assets/wallpapers/furina-03-salon-solitude.jpg\")"
+      }
+    },
+    {
+      "name": "no-wallpaper mode keeps a painted ground",
+      "ok": true,
+      "detail": {
+        "connected": true,
+        "visible": false
+      }
+    },
+    {
+      "name": "no attributable page exceptions from the app",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "failures": [],
+  "pageWarnings": [],
+  "screenshots": [
+    {
+      "skin": "fontaine-nocturne",
+      "path": "D:\\work area\\furina-theme\\dsh\\docs\\screenshot-fontaine-nocturne.png",
+      "bytes": 1866322
+    },
+    {
+      "skin": "hydro-iris",
+      "path": "D:\\work area\\furina-theme\\dsh\\docs\\screenshot-hydro-iris.png",
+      "bytes": 1451551
+    },
+    {
+      "skin": "salon-solitude",
+      "path": "D:\\work area\\furina-theme\\dsh\\docs\\screenshot-salon-solitude.png",
+      "bytes": 1427486
+    },
+    {
+      "state": "switcher-open",
+      "path": "D:\\work area\\furina-theme\\dsh\\docs\\screenshot-switcher-open.png",
+      "bytes": 1295772
+    },
+    {
+      "state": "wallpaper-swap",
+      "path": "D:\\work area\\furina-theme\\dsh\\docs\\screenshot-wallpaper-swap.png",
+      "bytes": 1358238
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+# dsh bundle patch — inserts the Furina theme into a profile's layer stack.
+#
+# The plugin is host-only (no `dsh.client` facet): it registers one prefix route
+# that serves the browser half (`client/theme.css`, `client/theme.js`, wallpapers)
+# and one index-injection row that pulls that script into the page. Every visual
+# decision lives in `client/`; nothing here knows a class name.
+- insert:
+    - id: furina-theme
+      name: furina-dsh-theme

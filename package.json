@@ -1,0 +1,52 @@
+{
+  "name": "furina-dsh-theme",
+  "version": "1.0.0",
+  "description": "《原神》芙宁娜 / Fontaine theme for the DeepSeek Harness Web GUI — three skins (fontaine-nocturne, hydro-iris, salon-solitude), a freely switchable wallpaper layer, translucent glass panels and an in-page skin switcher.",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "theme",
+    "skin",
+    "furina",
+    "fontaine",
+    "genshin",
+    "wallpaper"
+  ],
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "client",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE",
+    "NOTICE.md"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "check": "node --check lib/index.js && node --check client/theme.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TanPass/furina-dsh-theme.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TanPass/furina-dsh-theme/issues"
+  },
+  "homepage": "https://github.com/TanPass/furina-dsh-theme#readme"
+}
