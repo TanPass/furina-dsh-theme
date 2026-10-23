@@ -48,8 +48,11 @@ test('the browser half ships no imports and no fetch of foreign origins', () => 
 
 test('every asset URL in theme.js exists on disk', () => {
   const all = routePaths(themeJs)
-  // Two of these are JSON routes rather than files, and are covered by host tests.
-  const assets = all.filter((path) => !path.startsWith('/wallpapers') && !path.startsWith('/user-wallpaper'))
+  // JSON/action routes rather than files; their request handling lives in host
+  // tests. `/api/*` covers billing and the startup-plugin installer.
+  const assets = all.filter((path) => !path.startsWith('/wallpapers')
+    && !path.startsWith('/user-wallpaper')
+    && !path.startsWith('/api/'))
   assert.ok(all.includes('/wallpapers'), 'the custom wallpaper listing route is used')
   assert.ok(assets.length >= 6, `expected the served bundle + art, found ${assets.join(', ')}`)
   for (const path of assets) {

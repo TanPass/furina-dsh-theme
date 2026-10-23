@@ -313,6 +313,12 @@ html[data-furina-skin] ::selection {
   );
 }
 
+/* The scanline texture is decorative: users who prefer a cleaner screen can
+   switch it off in the theme settings (画面 · Surface). */
+html[data-furina-grain='clean'] #furina-backdrop .fr-grain {
+  display: none;
+}
+
 /* Boot fade: the decoration arrives with the skin, not in a flash. */
 html[data-furina-boot] #furina-backdrop .fr-veil,
 html[data-furina-boot] #furina-backdrop .fr-glow,
