@@ -27,7 +27,7 @@
   if (window.__furinaTheme) return
 
   var doc = document
-  var VERSION = '1.2.2'
+  var VERSION = '1.2.3'
   var ROUTE = '/furina-theme'
   var STORAGE_KEY = 'furina-theme.settings.v1'
   var SCRIPT_TAG = 'data-furina-theme'
@@ -963,6 +963,16 @@
     + 'transform:translateY(-50%)!important;text-align:left!important;'
     + 'font-size:11px!important;letter-spacing:0.16em!important}'
     + 'html[data-furina-skin] #dsh-startup-root .dsu-idline.dsu-in{transform:translateY(-50%)!important}'
+    // The whale/dots indicator only exists on some steps. In the stock flex
+    // stack it changes the height of the centred block and drags the hairline
+    // up on those steps; take it out of flow so the rule sits on one line for
+    // every step of the sequence.
+    + 'html[data-furina-skin] #dsh-startup-root .dsu-logo{position:absolute!important;'
+    + 'left:50%!important;transform:translateX(-50%)!important;top:calc(100% + 26px)!important;'
+    + 'margin-top:0!important}'
+    + 'html[data-furina-skin] #dsh-startup-root .dsu-dots{position:absolute!important;'
+    + 'left:50%!important;transform:translateX(-50%)!important;top:calc(100% + 96px)!important;'
+    + 'margin-top:0!important}'
     // While the splash owns the screen, keep the app shell (composer, transcript,
     // toasts, footer status and our own widgets) completely out of the frame.
     // splash.js owns `html.dsu-lock` and removes it when the sequence ends.
