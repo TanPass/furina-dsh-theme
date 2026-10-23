@@ -27,7 +27,7 @@
   if (window.__furinaTheme) return
 
   var doc = document
-  var VERSION = '1.2.0'
+  var VERSION = '1.2.1'
   var ROUTE = '/furina-theme'
   var STORAGE_KEY = 'furina-theme.settings.v1'
   var SCRIPT_TAG = 'data-furina-theme'
@@ -955,12 +955,12 @@
     + 'html[data-furina-skin] #dsh-startup-root .dsu-bloom{background:'
     + 'radial-gradient(circle,color-mix(in srgb,var(--dsu-accent) 90%,#fff) 0%,'
     + 'color-mix(in srgb,var(--dsu-accent) 45%,transparent) 30%,transparent 74%)!important}'
-    // The ID line is an annotation for the right archive column, not a caption
-    // for the headline: pin it inside that column so it never crosses the main
-    // title on 16:9 or narrower screens.
+    // The ID line is an annotation for the right archive column. The original
+    // sequence puts its leading dot on the right-hand third line, not against
+    // the viewport edge and not across the headline.
     + 'html[data-furina-skin] #dsh-startup-root .dsu-idline{'
-    + 'left:auto!important;right:6vw!important;top:49%!important;'
-    + 'transform:translateY(-50%)!important;text-align:right!important;'
+    + 'left:max(66.666vw,calc(50% + 230px))!important;right:auto!important;top:49%!important;'
+    + 'transform:translateY(-50%)!important;text-align:left!important;'
     + 'font-size:11px!important;letter-spacing:0.16em!important}'
     + 'html[data-furina-skin] #dsh-startup-root .dsu-idline.dsu-in{transform:translateY(-50%)!important}'
     // While the splash owns the screen, keep the app shell (composer, transcript,
