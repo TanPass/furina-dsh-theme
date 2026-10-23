@@ -27,7 +27,7 @@
   if (window.__furinaTheme) return
 
   var doc = document
-  var VERSION = '1.2.1'
+  var VERSION = '1.2.2'
   var ROUTE = '/furina-theme'
   var STORAGE_KEY = 'furina-theme.settings.v1'
   var SCRIPT_TAG = 'data-furina-theme'
@@ -959,7 +959,7 @@
     // sequence puts its leading dot on the right-hand third line, not against
     // the viewport edge and not across the headline.
     + 'html[data-furina-skin] #dsh-startup-root .dsu-idline{'
-    + 'left:max(66.666vw,calc(50% + 230px))!important;right:auto!important;top:49%!important;'
+    + 'left:max(69.666vw,calc(50% + 280px))!important;right:auto!important;top:49%!important;'
     + 'transform:translateY(-50%)!important;text-align:left!important;'
     + 'font-size:11px!important;letter-spacing:0.16em!important}'
     + 'html[data-furina-skin] #dsh-startup-root .dsu-idline.dsu-in{transform:translateY(-50%)!important}'
