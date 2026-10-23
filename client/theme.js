@@ -27,7 +27,7 @@
   if (window.__furinaTheme) return
 
   var doc = document
-  var VERSION = '1.1.1'
+  var VERSION = '1.2.0'
   var ROUTE = '/furina-theme'
   var STORAGE_KEY = 'furina-theme.settings.v1'
   var SCRIPT_TAG = 'data-furina-theme'
@@ -101,8 +101,16 @@
     skin: 'fontaine-nocturne',
     wallpaper: 'auto',
     glass: 'standard',
+    grain: 'texture',
     customSrc: null,
   }
+
+  // 'texture' keeps the faint scanline film; 'clean' removes it for users who
+  // find the lines distracting. Stored with the rest of the skin settings.
+  var GRAIN_MODES = [
+    { id: 'texture', zh: '细纹质感' },
+    { id: 'clean', zh: '纯净无纹' },
+  ]
 
   function byId(list, id) {
     for (var i = 0; i < list.length; i += 1) if (list[i].id === id) return list[i]
@@ -114,6 +122,7 @@
       skin: DEFAULTS.skin,
       wallpaper: DEFAULTS.wallpaper,
       glass: DEFAULTS.glass,
+      grain: DEFAULTS.grain,
       customSrc: DEFAULTS.customSrc,
     }
     try {
@@ -124,6 +133,7 @@
       if (typeof parsed.skin === 'string' && byId(SKINS, parsed.skin) !== null) next.skin = parsed.skin
       if (typeof parsed.wallpaper === 'string' && parsed.wallpaper !== '') next.wallpaper = parsed.wallpaper
       if (typeof parsed.glass === 'string' && byId(GLASS_MODES, parsed.glass) !== null) next.glass = parsed.glass
+      if (typeof parsed.grain === 'string' && byId(GRAIN_MODES, parsed.grain) !== null) next.grain = parsed.grain
       // A user-picked picture travels as a data URL. Anything else in that slot
       // (older builds, hand-edited storage) is ignored rather than executed.
       if (typeof parsed.customSrc === 'string' && parsed.customSrc.indexOf('data:image/') === 0) {
@@ -436,6 +446,16 @@
     return out
   }
 
+  function grainMarkup() {
+    var out = ''
+    for (var i = 0; i < GRAIN_MODES.length; i += 1) {
+      var mode = GRAIN_MODES[i]
+      out += '<button data-grain="' + esc(mode.id) + '" aria-pressed="' + (mode.id === state.grain) + '">'
+        + esc(mode.zh) + '</button>'
+    }
+    return out
+  }
+
   // One markup source for both surfaces: the fallback pill's panel and the
   // settings-modal pane. Keeping it single-source is what lets the fallback
   // stay a working copy of the same controls instead of a second implementation.
@@ -447,6 +467,7 @@
       + '<h2>皮肤 · Skin</h2><div class="skins">' + skinMarkup() + '</div>'
       + '<h2>壁纸 · Wallpaper</h2><div class="walls">' + wallpaperMarkup() + '</div>'
       + '<h2>玻璃 · Glass</h2><div class="glass">' + glassMarkup() + '</div>'
+      + '<h2>画面 · Surface</h2><div class="glass">' + grainMarkup() + '</div>'
       // The companion dsh-startup-screen plugin keeps its 30+ options in its own
       // section; the two controls that matter most live here, next to the skin
       // they are coloured from, and the full panel is one click away.
@@ -515,7 +536,7 @@
     if (file === undefined || file === null) return
     shrinkImage(file, function onshrunk(data) {
       if (data === null || typeof data !== 'string') return
-      state = { skin: state.skin, wallpaper: 'custom', glass: state.glass, customSrc: data }
+      state = { skin: state.skin, wallpaper: 'custom', glass: state.glass, grain: state.grain, customSrc: data }
       writeSettings(state)
       render()
       paintWallpaper()
@@ -550,13 +571,17 @@
         setGlass(button.getAttribute('data-glass'))
         return
       }
+      if (button.getAttribute('data-grain') !== null) {
+        setGrain(button.getAttribute('data-grain'))
+        return
+      }
       if (button.getAttribute('data-custom-wall') !== null) {
         var picker = scope.querySelector('.filepick')
         if (picker !== null) picker.click()
         return
       }
       if (button.getAttribute('data-reset') !== null) {
-        state = { skin: DEFAULTS.skin, wallpaper: DEFAULTS.wallpaper, glass: DEFAULTS.glass, customSrc: null }
+        state = { skin: DEFAULTS.skin, wallpaper: DEFAULTS.wallpaper, glass: DEFAULTS.glass, grain: DEFAULTS.grain, customSrc: null }
         writeSettings(state)
         render()
         paintWallpaper()
@@ -666,7 +691,42 @@
       .catch(function onerr() {
         config = null
         paint()
-        hint.textContent = '未检测到 dsh-startup-screen；安装后此处会自动出现开关'
+        hint.textContent = ''
+        var span = doc.createElement('span')
+        span.textContent = '未检测到 dsh-startup-screen。'
+        hint.appendChild(span)
+        var install = doc.createElement('button')
+        install.type = 'button'
+        install.className = 'lnk'
+        install.textContent = '一键安装'
+        install.addEventListener('click', function oninstall() {
+          if (install.disabled) return
+          install.disabled = true
+          install.textContent = '安装中…'
+          fetch('/furina-theme/api/startup-plugin', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ action: 'install' }),
+          }).then(function ondone(response) { return response.json() })
+            .then(function ondata(data) {
+              if (data !== null && data.ok === true) {
+                hint.textContent = data.already === true
+                  ? '启动动画插件已就绪，重启 DSH 后生效'
+                  : '已安装启动动画插件 · 重启 DSH 后生效（设置保留）'
+                return
+              }
+              install.disabled = false
+              install.textContent = '一键安装'
+              hint.textContent = '安装失败：' + (data && data.error ? data.error : '未知原因')
+            })
+            .catch(function onfail() {
+              install.disabled = false
+              install.textContent = '一键安装'
+              hint.textContent = '安装失败：当前宿主版本不支持，请升级 furina-dsh-theme'
+            })
+        })
+        hint.appendChild(install)
       })
   }
 
@@ -742,6 +802,10 @@
       var gid = glassButtons[m].getAttribute('data-glass')
       glassButtons[m].setAttribute('aria-pressed', String(gid === state.glass))
     }
+    var grainButtons = root.querySelectorAll('[data-grain]')
+    for (var n = 0; n < grainButtons.length; n += 1) {
+      grainButtons[n].setAttribute('aria-pressed', String(grainButtons[n].getAttribute('data-grain') === state.grain))
+    }
   }
 
   function render() {
@@ -749,6 +813,7 @@
     html.setAttribute('data-furina-skin', state.skin)
     html.setAttribute('data-furina-wallpaper', state.wallpaper)
     html.setAttribute('data-furina-glass', state.glass)
+    html.setAttribute('data-furina-grain', state.grain)
 
     syncControls(shadow)
     syncControls(settingsPaneShadow)
@@ -763,17 +828,22 @@
 
   function setSkin(id) {
     if (byId(SKINS, id) === null) return
-    commit({ skin: id, wallpaper: state.wallpaper, glass: state.glass, customSrc: state.customSrc })
+    commit({ skin: id, wallpaper: state.wallpaper, glass: state.glass, grain: state.grain, customSrc: state.customSrc })
   }
 
   function setWallpaper(id) {
     if (id === 'custom' && state.customSrc === null) return
-    commit({ skin: state.skin, wallpaper: id, glass: state.glass, customSrc: state.customSrc })
+    commit({ skin: state.skin, wallpaper: id, glass: state.glass, grain: state.grain, customSrc: state.customSrc })
   }
 
   function setGlass(id) {
     if (byId(GLASS_MODES, id) === null) return
-    commit({ skin: state.skin, wallpaper: state.wallpaper, glass: id, customSrc: state.customSrc })
+    commit({ skin: state.skin, wallpaper: state.wallpaper, glass: id, grain: state.grain, customSrc: state.customSrc })
+  }
+
+  function setGrain(id) {
+    if (byId(GRAIN_MODES, id) === null) return
+    commit({ skin: state.skin, wallpaper: state.wallpaper, glass: state.glass, grain: id, customSrc: state.customSrc })
   }
 
   function refreshWallpapers() {
@@ -885,6 +955,18 @@
     + 'html[data-furina-skin] #dsh-startup-root .dsu-bloom{background:'
     + 'radial-gradient(circle,color-mix(in srgb,var(--dsu-accent) 90%,#fff) 0%,'
     + 'color-mix(in srgb,var(--dsu-accent) 45%,transparent) 30%,transparent 74%)!important}'
+    // The ID line is an annotation for the right archive column, not a caption
+    // for the headline: pin it inside that column so it never crosses the main
+    // title on 16:9 or narrower screens.
+    + 'html[data-furina-skin] #dsh-startup-root .dsu-idline{'
+    + 'left:auto!important;right:6vw!important;top:49%!important;'
+    + 'transform:translateY(-50%)!important;text-align:right!important;'
+    + 'font-size:11px!important;letter-spacing:0.16em!important}'
+    + 'html[data-furina-skin] #dsh-startup-root .dsu-idline.dsu-in{transform:translateY(-50%)!important}'
+    // While the splash owns the screen, keep the app shell (composer, transcript,
+    // toasts, footer status and our own widgets) completely out of the frame.
+    // splash.js owns `html.dsu-lock` and removes it when the sequence ends.
+    + 'html.dsu-lock body > *:not(#dsh-startup-root):not(#furina-backdrop){visibility:hidden!important}'
 
   function ensureSplashStyles() {
     var head = doc.head || doc.documentElement
@@ -1300,7 +1382,13 @@
     closeSettings: function () { setSettingsOpen(false) },
     revealFallback: revealFallback,
     reset: function () {
-      state = { skin: DEFAULTS.skin, wallpaper: DEFAULTS.wallpaper, glass: DEFAULTS.glass, customSrc: null }
+      state = {
+        skin: DEFAULTS.skin,
+        wallpaper: DEFAULTS.wallpaper,
+        glass: DEFAULTS.glass,
+        grain: DEFAULTS.grain,
+        customSrc: null,
+      }
       writeSettings(state)
       render()
       paintWallpaper()

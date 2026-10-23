@@ -46,7 +46,9 @@ they show the old floating switcher that round 2 replaced.
   switcher as an extra tile — free wallpaper switching is not limited to the shipped
   set.
 * **Translucent glass UI** in three strengths — `轻柔` / `标准` / `浓郁` — applied to
-  the sidebar, composer, popovers and the settings card itself.
+  the sidebar, composer, popovers and the settings card itself. A separate
+  **画面 · Surface** switch removes the faint scanline film for users who prefer a
+  perfectly clean wallpaper.
 * **A settings page inside DSH Settings** — a 芙宁娜主题 / Furina theme section in the
   app's own Preferences dialog (an extra nav row rendered in a Shadow DOM pane): skin
   cards with live swatches, a wallpaper tile grid — including `任意壁纸` to pick any
@@ -95,13 +97,16 @@ the bundled plugins do:
   never appears, so the old UI remains an honest fallback rather than the primary
   surface.
 
-Below 玻璃 the same pane carries the **启动动画 · Startup** block, so the companion
-startup-animation plugin is operated from the same screen as the skin it is coloured
-from: an enable switch, a 每次会话 / 总是 / 每天 play-mode select and a
+Below 玻璃 the same pane carries the **画面 · Surface** card (细纹质感 / 纯净无纹,
+the latter hides the decorative scanline layer) and the **启动动画 · Startup** block, so
+the companion startup-animation plugin is operated from the same screen as the skin it
+is coloured from: an enable switch, a 每次会话 / 总是 / 每天 play-mode select and a
 `打开完整设置` link that jumps to the plugin's own section for its 30+ options. The
 block talks to the plugin's own JSON endpoint (`GET`/`POST /dsh-startup/config`, patch
-semantics owned by that plugin) and disables itself with an install hint when
-`dsh-startup-screen` is not present — the theme never hard-depends on it.
+semantics owned by that plugin). When `dsh-startup-screen` is not installed the block
+offers **一键安装**: the host copies the vendored companion into the active profile
+(`lib/startup-install.js`) and adds the bundle entry, then asks for one DSH restart —
+no network access and no command line. The theme itself never hard-depends on it.
 
 ### Startup splash
 
@@ -121,11 +126,16 @@ html[data-furina-skin='<skin>'] #dsh-startup-root {
 
 plus paint-layer overrides for the hard-coded light parts of `splash.css`:
 `.dsu-plate` (skin wallpaper + veil gradient), `.dsu-wm` (archive panels — the white
-slabs), `.dsu-wash`, `.dsu-black`, `.dsu-flash`, `.dsu-bloom`. The black opening act
-with the DeepSeek wordmark is intentionally left dark; everything after it is
-Fontaine night. Proof is a capture of a **real boot** from an isolated instance that
-keeps `dsh-startup-screen` in its bundle list (the shared verify instance removes it
-because its GRANT ACCESS gate blocks automation) — `docs/screenshots/splash-boot.png`.
+slabs), `.dsu-wash`, `.dsu-black`, `.dsu-flash`, `.dsu-bloom`. While the sequence owns
+the screen (`html.dsu-lock`), every sibling of the splash root — app shell, composer,
+transcript, toasts, footer status and the theme's own panels — is kept out of the frame.
+The `· ID CONFIRMED : xxxx` annotation is pinned to the right archive column (6vw from
+the edge) instead of crossing the headline, and the mode restores itself when
+`splash.js` releases the lock. The black opening act with the DeepSeek wordmark is
+intentionally left dark; everything after it is Fontaine night. Proof is a capture of a
+**real boot** from an isolated instance that keeps `dsh-startup-screen` in its bundle
+list (the shared verify instance removes it because its GRANT ACCESS gate blocks
+automation) — `docs/screenshots/splash-boot.png`.
 
 ### File cards
 
