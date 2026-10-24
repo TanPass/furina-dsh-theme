@@ -1,7 +1,7 @@
 {
   "name": "furina-dsh-theme",
-  "version": "1.2.5",
-  "description": "《原神》芙宁娜 / Fontaine theme for the DeepSeek Harness Web GUI — three skins (fontaine-nocturne, hydro-iris, salon-solitude), a freely switchable wallpaper layer, translucent glass panels and an in-page skin switcher.",
+  "version": "1.2.6",
+  "description": "《原神》芙宁娜 / Fontaine theme for the DeepSeek Harness Web GUI — three skins, freely switchable wallpapers, translucent glass, an in-page settings section, a replaceable Furina agent preset and a themed startup splash.",
   "keywords": [
     "dsh",
     "dsh-plugin",
@@ -28,11 +28,13 @@
     "LICENSE",
     "NOTICE.md",
     "CREDITS.md",
+    "preset",
+    "tools",
     "companion"
   ],
   "scripts": {
     "test": "node --test test/*.test.mjs",
-    "check": "node --check lib/index.js && node --check lib/billing.js && node --check lib/startup-install.js && node --check client/theme.js && node --check client/billing.js"
+    "check": "node --check lib/index.js && node --check lib/billing.js && node --check lib/startup-install.js && node --check lib/preset.js && node --check client/theme.js && node --check client/billing.js"
   },
   "dependencies": {
     "dsh-cost-meter": "^1.8.24"

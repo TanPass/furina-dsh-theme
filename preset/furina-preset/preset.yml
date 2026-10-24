@@ -1,0 +1,9 @@
+# 芙宁娜·德·枫丹 — DSH Agent 预设的显示元数据
+#
+# 这些字段会写进 cordis.patch.yml 里 `@deepseek-ai/dsh-agent-preset` 声明行的
+# config，用于 DSH 新建会话时的预设选择器。id 必须与 agent.cordis.yml 所在
+# 目录的用途一致，且不能与已安装预设重复。
+id: furina-de-fontaine
+name: "芙宁娜·德·枫丹"
+description: "以《原神》枫丹前水神芙宁娜为人格层的 DSH Agent 预设：浮夸的舞台腔与卸任后的脆弱感并存，在“水神模式”与“芙宁娜模式”之间带着摩擦切换；涉及事实、代码与工具调用时保持严谨，人格只决定语气，不改写交付。"
+order: 20

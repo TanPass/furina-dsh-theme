@@ -59,6 +59,12 @@ they show the old floating switcher that round 2 replaced.
   re-coloured per skin through its own `--dsu-*` custom properties, with the active
   wallpaper laid under the veil, so the first paint is Fontaine night instead of the
   stock white plate. The startup package is not modified.
+* **A replaceable Furina agent preset** — the 人格预设 · PERSONA block in the settings
+  page installs a real `@deepseek-ai/dsh-agent-preset` declaration generated from two
+  plain-text sources under `preset/furina-preset/` (`preset.yml` for metadata,
+  `agent.cordis.yml` for the persona prompt and the rest of the agent composition).
+  Edit those files — or point the installer at another folder — to swap the persona
+  without touching any code. See [Persona preset](#persona-preset-人格预设).
 * **Readable file & deliverable cards** — the "已编辑 …" changed-file card and the
   presented-file row are repainted from the skin palette instead of the stock white
   surface. See [File cards](#file-cards).
@@ -129,13 +135,39 @@ plus paint-layer overrides for the hard-coded light parts of `splash.css`:
 slabs), `.dsu-wash`, `.dsu-black`, `.dsu-flash`, `.dsu-bloom`. While the sequence owns
 the screen (`html.dsu-lock`), every sibling of the splash root — app shell, composer,
 transcript, toasts, footer status and the theme's own panels — is kept out of the frame.
-The `· ID CONFIRMED : xxxx` annotation is pinned to the right archive column (6vw from
-the edge) instead of crossing the headline, and the mode restores itself when
+The `· ID CONFIRMED : xxxx` annotation sits at `left:69.666vw` — inside the right
+archive column, clear of the centered headline — and the mode restores itself when
 `splash.js` releases the lock. The black opening act with the DeepSeek wordmark is
 intentionally left dark; everything after it is Fontaine night. Proof is a capture of a
 **real boot** from an isolated instance that keeps `dsh-startup-screen` in its bundle
 list (the shared verify instance removes it because its GRANT ACCESS gate blocks
 automation) — `docs/screenshots/splash-boot.png`.
+
+### Persona preset (人格预设)
+
+The settings page also carries a `人格预设 · PERSONA` block. It is not a JS-embedded
+prompt: the package ships two plain sources and the host renders one
+`@deepseek-ai/dsh-agent-preset` declaration from them.
+
+| File | Role |
+| --- | --- |
+| `preset/furina-preset/preset.yml` | display metadata: `id`, `name`, `description`, `order` |
+| `preset/furina-preset/agent.cordis.yml` | the preset's plugin list; `- id: persona` carries `complete: true` and the Furina `config.prefix`; the remaining rows mirror DSH's standard agent composition (tools, skills, planning, compaction, delegation) |
+
+* **Install / remove** — the block's button POSTs `{action:'install'|'remove'}` to
+  `/furina-theme/api/preset`; the host writes or deletes only the marker-delimited
+  block `# [furina-dsh-theme] furina agent preset — begin … end` in the active
+  profile's `cordis.patch.yml`, backing the file up first. A DSH restart is required
+  for the new preset to appear in the new-session preset picker.
+* **Headless** — `node tools/install-preset.mjs [--status|--remove] [--home <DSH_HOME>]
+  [--preset <folder>]` does the same without the GUI.
+* **Replace it** — copy `preset/furina-preset/` anywhere, change `id`/`name`/
+  `description`, replace the `config.prefix` text, and install that folder (the CLI's
+  `--preset` or by swapping the folder inside the installed package before pressing
+  install). Nothing reads the legacy `$DSH_HOME/.agent-presets/<id>/` directory any
+  more; the declaration row is the only supported form.
+* **No hard dependency** — without `@deepseek-ai/dsh-agent-preset` in the profile the
+  GET reports `ok:false` and the block explains it instead of failing the page.
 
 ### File cards
 
@@ -571,13 +603,16 @@ package.json            dsh.bundle.patch → ./cordis.patch.yml, files: lib, cli
 cordis.patch.yml        inserts the `furina-theme` plugin row + the `dsh-cost-meter` service row
 lib/index.js            host half: routes, injection rows, file serving, disposal
 lib/billing.js          billing document: cost-meter adapter, balance merge (incl. bonus wallets)
+lib/preset.js           renders/installs/removes the replaceable agent-preset declaration
 client/theme.css        palettes + token mapping + glass/surface + sidebar/deliverable rules
 client/theme.js         backdrop, settings page, themed splash, dark branch, persistence, keyboard
 client/billing.css      "电力储备" card styling from the skin palette variables
 client/billing.js       self-mounting reserve gauge + 本轮/今日 token & cost table
 client/assets/          emblem.svg, 3 wallpapers, 3 thumbnails
-test/                   node:test suites (host, client, billing)
+preset/furina-preset/   replaceable preset sources: preset.yml + agent.cordis.yml (+ README)
+test/                   node:test suites (host, client, billing, preset)
 tools/verify.mjs        live-instance CDP verification + screenshots
+tools/install-preset.mjs  CLI install/remove/status for the agent preset
 docs/                   round-1 screenshots + verify-report.json
 docs/screenshots/       round-2 proof shots (three skins, settings page, splash boot, file cards)
 companion/              reference/companion plugins, source-identical, for reading and credit
@@ -616,6 +651,11 @@ of Furina (《原神》 / Genshin Impact, © HoYoverse), included for personal, 
 theming only. See [NOTICE.md](NOTICE.md) before redistributing or publishing this
 repository — or replace the images in `client/assets/` with art you may redistribute
 (the theme works with any images).
+
+The persona prompt in `preset/furina-preset/agent.cordis.yml` is fan writing built from
+the requester's supplied preset; the character and setting are © HoYoverse, and the text
+is likewise included for personal, non-commercial use. It is a plain text file — change
+or delete it freely.
 
 The vendored startup plugin in `companion/dsh-startup-screen/` keeps its own MIT
 notice and copyright (© 沈宏宏); see that folder's `LICENSE`.
