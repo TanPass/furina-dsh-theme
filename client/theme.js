@@ -27,7 +27,7 @@
   if (window.__furinaTheme) return
 
   var doc = document
-  var VERSION = '1.2.4'
+  var VERSION = '1.2.5'
   var ROUTE = '/furina-theme'
   var STORAGE_KEY = 'furina-theme.settings.v1'
   var SCRIPT_TAG = 'data-furina-theme'
@@ -977,6 +977,16 @@
     // so the centre hairline lands on y=396 at 900px tall (the look the whale
     // steps had before the logo was taken out of flow), on every step.
     + 'html[data-furina-skin] #dsh-startup-root .dsu-center{top:calc(47% - 60px)!important}'
+    // Page 05 (VERIFY) keeps the original, centred composition: the reticle and
+    // the status line were designed to sit in the middle of the frame, so only
+    // that page steps back to the stock 47% top and stock logo flow. The ID
+    // annotation is untouched (it is positioned independently at 49%).
+    + 'html[data-furina-skin] #dsh-startup-root[data-furina-step="5"] .dsu-center{top:47%!important}'
+    // Pages 01/02 carry the identity card and the CONFIRM button below the
+    // centre block. When the hairline moved up, that lower half has to follow,
+    // otherwise the gap between the rule and the card doubles.
+    + 'html[data-furina-skin] #dsh-startup-root[data-furina-step]:not([data-furina-step="5"]) .dsu-action{'
+    + 'transform:translateY(-60px)!important}'
     // While the splash owns the screen, keep the app shell (composer, transcript,
     // toasts, footer status and our own widgets) completely out of the frame.
     // splash.js owns `html.dsu-lock` and removes it when the sequence ends.
@@ -991,6 +1001,35 @@
     style.setAttribute('data-furina-splash', '1')
     style.textContent = SPLASH_CSS
     head.appendChild(style)
+  }
+
+  var splashStepTimer = null
+
+  // The splash has no per-step class or data attribute, only the `[ 0N / 06 ]`
+  // counter text. Mirror that number onto `data-furina-step` so the stylesheet
+  // can keep page 05 on the original composition while the other pages use the
+  // taller one.
+  function syncSplashStep() {
+    var root = doc.getElementById('dsh-startup-root')
+    if (root === null) return false
+    var count = root.querySelector('.dsu-stepcount')
+    if (count === null) return false
+    var apply = function () {
+      var match = /^\s*\[\s*0*(\d+)/.exec(count.textContent || '')
+      if (match !== null) root.setAttribute('data-furina-step', match[1])
+    }
+    if (root.getAttribute('data-furina-step-watch') !== '1') {
+      root.setAttribute('data-furina-step-watch', '1')
+      if (typeof MutationObserver === 'function') {
+        new MutationObserver(apply).observe(count, {
+          childList: true,
+          characterData: true,
+          subtree: true,
+        })
+      }
+    }
+    apply()
+    return true
   }
 
   /* ------------------------------------------------------------ settings page */
@@ -1325,6 +1364,15 @@
   function boot() {
     ensureSheet()
     ensureSplashStyles()
+    syncSplashStep()
+    if (splashStepTimer === null) {
+      splashStepTimer = window.setInterval(function () {
+        if (syncSplashStep()) {
+          window.clearInterval(splashStepTimer)
+          splashStepTimer = null
+        }
+      }, 200)
+    }
     assertDarkMode()
     startDarkGuard()
     ensureBackdrop()
