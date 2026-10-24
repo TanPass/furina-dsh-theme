@@ -27,7 +27,7 @@
   if (window.__furinaTheme) return
 
   var doc = document
-  var VERSION = '1.2.3'
+  var VERSION = '1.2.4'
   var ROUTE = '/furina-theme'
   var STORAGE_KEY = 'furina-theme.settings.v1'
   var SCRIPT_TAG = 'data-furina-theme'
@@ -973,6 +973,10 @@
     + 'html[data-furina-skin] #dsh-startup-root .dsu-dots{position:absolute!important;'
     + 'left:50%!important;transform:translateX(-50%)!important;top:calc(100% + 96px)!important;'
     + 'margin-top:0!important}'
+    // The user picked the taller composition: the status block sits 60px higher
+    // so the centre hairline lands on y=396 at 900px tall (the look the whale
+    // steps had before the logo was taken out of flow), on every step.
+    + 'html[data-furina-skin] #dsh-startup-root .dsu-center{top:calc(47% - 60px)!important}'
     // While the splash owns the screen, keep the app shell (composer, transcript,
     // toasts, footer status and our own widgets) completely out of the frame.
     // splash.js owns `html.dsu-lock` and removes it when the sequence ends.
