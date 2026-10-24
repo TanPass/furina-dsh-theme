@@ -27,7 +27,7 @@
   if (window.__furinaTheme) return
 
   var doc = document
-  var VERSION = '1.2.5'
+  var VERSION = '1.2.6'
   var ROUTE = '/furina-theme'
   var STORAGE_KEY = 'furina-theme.settings.v1'
   var SCRIPT_TAG = 'data-furina-theme'
@@ -360,6 +360,8 @@
     + 'background:rgba(12,16,28,.8);border:1px solid rgba(255,255,255,.16)}'
     + '.selsm:disabled{opacity:.4}'
     + '.hint{display:flex;align-items:center;gap:6px;margin:0;font-size:10.5px;opacity:.6}'
+    + '.presc{margin:2px 10px 8px;font-size:11px;line-height:1.6;opacity:.72;'
+    + 'color:var(--fr-muted,#93a4be)}'
     + '.lnk{padding:0;border:0;background:none;color:var(--fr-accent,#4ea4ef);font:inherit;font-size:10.5px;'
     + 'cursor:pointer;text-decoration:underline}'
     + '.ft{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px;'
@@ -483,6 +485,17 @@
       + '<option value="daily">每天</option></select></div>'
       + '<p class="hint" data-startup-hint>正在检测 dsh-startup-screen…</p>'
       + '</div>'
+      // The persona is shipped as a replaceable preset inside this package; the
+      // button here only writes/removes the declaration row in the active
+      // profile patch, so swapping the folder is enough to swap the persona.
+      + '<h2>人格预设 · Persona</h2>'
+      + '<div class="startup" data-persona-block>'
+      + '<div class="swrow"><span class="swlbl"><b>芙宁娜·德·枫丹</b>'
+      + '<small>可替换的 Agent 人格预设</small></span>'
+      + '<button class="tgl" data-persona-toggle aria-pressed="false" disabled>检测中</button></div>'
+      + '<p class="presc" data-persona-desc></p>'
+      + '<p class="hint" data-persona-hint>正在检测预设目录…</p>'
+      + '</div>'
       + '<div class="ft"><button class="rst" data-reset>恢复默认</button>'
       + '<span>v' + VERSION + ' · <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd></span></div>'
   }
@@ -595,6 +608,97 @@
     if (input !== null) input.addEventListener('change', function onchange() { onPickFile(input) })
 
     wireStartup(scope)
+    wirePersona(scope)
+  }
+
+  /* ------------------------------------------------------- preset install block */
+
+  var PERSONA_API = '/furina-theme/api/preset'
+
+  // The preset sources live in `preset/furina-preset/` inside this package. The
+  // host renders the `@deepseek-ai/dsh-agent-preset` row and appends it to the
+  // active profile's cordis.patch.yml; this UI only flips that row on or off.
+  function wirePersona(scope) {
+    var toggle = scope.querySelector('[data-persona-toggle]')
+    var hint = scope.querySelector('[data-persona-hint]')
+    var desc = scope.querySelector('[data-persona-desc]')
+    if (toggle === null || hint === null) return
+    var state = null
+    var busy = false
+    var epoch = 0
+
+    function paint() {
+      var on = state !== null && state.installed === true
+      toggle.disabled = state === null || busy
+      toggle.setAttribute('aria-pressed', String(on))
+      toggle.textContent = state === null ? '不可用' : (busy ? '处理中…' : (on ? '已安装' : '安装'))
+      if (desc !== null) {
+        desc.textContent = state !== null && state.meta !== null && typeof state.meta.description === 'string'
+          ? state.meta.description
+          : ''
+      }
+      hint.textContent = state === null
+        ? '预设安装需要新版宿主端：刚升级插件的话，请重启 DSH 后刷新页面。'
+        : (state.installed === true
+          ? '已安装 · 重新打开 DSH 后在新建会话的预设选择器中出现'
+          : '未安装 · 安装后可随时替换 preset/furina-preset 里的文件')
+    }
+
+    function load() {
+      var mine = ++epoch
+      fetch(PERSONA_API, { credentials: 'same-origin' })
+        .then(function onok(response) { return response.json() })
+        .then(function ondata(data) {
+          if (mine !== epoch) return
+          state = data
+          paint()
+        })
+        .catch(function onerr() {
+          if (mine !== epoch) return
+          state = null
+          paint()
+        })
+    }
+
+    function act(action) {
+      if (busy || state === null) return
+      busy = true
+      paint()
+      var mine = ++epoch
+      fetch(PERSONA_API, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action: action }),
+      }).then(function onok(response) { return response.json() })
+        .then(function ondata(data) {
+          if (mine !== epoch) return
+          epoch += 1
+          busy = false
+          if (data !== null && data.ok === true) {
+            state = data
+            paint()
+            if (data.restart === true) hint.textContent = (data.installed ? '已安装' : '已移除') + ' · 重新打开 DSH 后生效'
+            else hint.textContent = data.installed ? '已安装 · 可随时替换 preset/furina-preset 里的文件' : '已移除'
+          } else {
+            hint.textContent = '操作失败：' + String(data && data.error ? data.error : 'unknown')
+          }
+        })
+        .catch(function onerr() {
+          if (mine !== epoch) return
+          epoch += 1
+          busy = false
+          paint()
+          hint.textContent = '操作失败，请检查 profile 的 cordis.patch.yml'
+        })
+    }
+
+    toggle.addEventListener('click', function onclick() {
+      if (state === null) return
+      act(state.installed === true ? 'remove' : 'install')
+    })
+
+    load()
   }
 
   /* ------------------------------------------------- startup animation block */
@@ -959,7 +1063,7 @@
     // sequence puts its leading dot on the right-hand third line, not against
     // the viewport edge and not across the headline.
     + 'html[data-furina-skin] #dsh-startup-root .dsu-idline{'
-    + 'left:max(69.666vw,calc(50% + 280px))!important;right:auto!important;top:49%!important;'
+    + 'left:69.666vw!important;right:auto!important;top:49%!important;'
     + 'transform:translateY(-50%)!important;text-align:left!important;'
     + 'font-size:11px!important;letter-spacing:0.16em!important}'
     + 'html[data-furina-skin] #dsh-startup-root .dsu-idline.dsu-in{transform:translateY(-50%)!important}'
