@@ -27,7 +27,7 @@
   if (window.__furinaTheme) return
 
   var doc = document
-  var VERSION = '1.2.6'
+  var VERSION = '1.2.7'
   var ROUTE = '/furina-theme'
   var STORAGE_KEY = 'furina-theme.settings.v1'
   var SCRIPT_TAG = 'data-furina-theme'
@@ -1075,8 +1075,42 @@
     + 'left:50%!important;transform:translateX(-50%)!important;top:calc(100% + 26px)!important;'
     + 'margin-top:0!important}'
     + 'html[data-furina-skin] #dsh-startup-root .dsu-dots{position:absolute!important;'
-    + 'left:50%!important;transform:translateX(-50%)!important;top:calc(100% + 96px)!important;'
+    + 'left:50%!important;transform:translateX(-50%)!important;top:calc(100% + 102px)!important;'
     + 'margin-top:0!important}'
+    // Page 05: the status headline sat low in the reticle, so its subtitle ran
+    // into the centre hairline. Lift the headline + subtitle so the separator
+    // dot of the headline lands exactly on the ring centre (y = 405 at 900px);
+    // drop the stock text-indent on this page so the dot is also centred
+    // horizontally, and push the hairline down to keep it clear of the subtitle.
+    + 'html[data-furina-skin] #dsh-startup-root[data-furina-step="5"] .dsu-status,'
+    + 'html[data-furina-skin] #dsh-startup-root[data-furina-step="5"] .dsu-sub-en{'
+    + 'position:relative!important;top:-4.5px!important}'
+    + 'html[data-furina-skin] #dsh-startup-root[data-furina-step="5"] .dsu-status,'
+    + 'html[data-furina-skin] #dsh-startup-root[data-furina-step="5"] .dsu-sub-en{'
+    + 'position:relative!important;top:-4.5px!important;text-indent:0!important}'
+    + 'html[data-furina-skin] #dsh-startup-root[data-furina-step="5"] .dsu-rule{'
+    + 'margin-top:11px!important}'
+    // Page 05: Chinese and English must read as two aligned lines — the two
+    // separator dots stacked on the ring centre, the left words flush with the
+    // left Chinese group and the right words flush with the right Chinese group.
+    // theme.js splits each line into left / dot / right cells so this grid can
+    // align them; without the split the original runs stay untouched.
+    + 'html[data-furina-skin] #dsh-startup-root[data-furina-step="5"] .dsu-status-zh,'
+    + 'html[data-furina-skin] #dsh-startup-root[data-furina-step="5"] .dsu-sub-en{'
+    + 'display:grid!important;grid-template-columns:1fr auto 1fr!important;'
+    + 'width:464px!important;max-width:94vw!important;'
+    + 'margin-left:auto!important;margin-right:auto!important;text-indent:0!important}'
+    + 'html[data-furina-skin] #dsh-startup-root[data-furina-step="5"] .fr-g-l{'
+    + 'text-align:left!important;white-space:nowrap!important}'
+    + 'html[data-furina-skin] #dsh-startup-root[data-furina-step="5"] .fr-g-r{'
+    + 'text-align:right!important;white-space:nowrap!important}'
+    + 'html[data-furina-skin] #dsh-startup-root[data-furina-step="5"] .fr-sep{'
+    + 'text-align:center!important}'
+    // The blinking caret is a flex sibling of the headline; it would push the
+    // 538px grid off-centre by half its width. Hide it on this page so both
+    // lines share the exact same left/right edges.
+    + 'html[data-furina-skin] #dsh-startup-root[data-furina-step="5"] .dsu-status .dsu-caret{'
+    + 'display:none!important}'
     // The user picked the taller composition: the status block sits 60px higher
     // so the centre hairline lands on y=396 at 900px tall (the look the whale
     // steps had before the logo was taken out of flow), on every step.
@@ -1108,6 +1142,147 @@
   }
 
   var splashStepTimer = null
+  var splashSplitTimer = null
+
+  // Page 05 carries two lines that must line up: the Chinese headline and its
+  // English subtitle. Split each line around its separator dot into
+  // left / dot / right cells (keeping the existing per-character animation
+  // spans intact) so the grid in the stylesheet can align both lines.
+  function trimLineEdges(element) {
+    function blank(node) {
+      return node !== null && String(node.textContent || '').trim() === ''
+    }
+    while (blank(element.firstChild)) element.removeChild(element.firstChild)
+    while (blank(element.lastChild)) element.removeChild(element.lastChild)
+  }
+
+  function splitSplashLine(line) {
+    if (line === null || line.getAttribute('data-furina-split') === '1') return line !== null
+    var nodes = Array.prototype.slice.call(line.childNodes)
+    var dot = null
+    for (var i = 0; i < nodes.length; i += 1) {
+      var node = nodes[i]
+      var text = String(node.textContent || '')
+      var index = text.indexOf('·')
+      if (index < 0) continue
+      if (node.nodeType === 3) {
+        var dotNode = doc.createTextNode('·')
+        line.insertBefore(doc.createTextNode(text.slice(0, index)), node)
+        line.insertBefore(dotNode, node)
+        line.insertBefore(doc.createTextNode(text.slice(index + 1)), node)
+        line.removeChild(node)
+        dot = dotNode
+      } else {
+        dot = node
+      }
+      break
+    }
+    if (dot === null) return false
+    var left = doc.createElement('span')
+    left.className = 'fr-g fr-g-l'
+    var right = doc.createElement('span')
+    right.className = 'fr-g fr-g-r'
+    var sep = doc.createElement('span')
+    sep.className = 'fr-sep'
+    var current = Array.prototype.slice.call(line.childNodes)
+    var inRight = false
+    for (var j = 0; j < current.length; j += 1) {
+      var child = current[j]
+      if (child === dot) {
+        inRight = true
+        sep.appendChild(child)
+        continue
+      }
+      if (inRight) right.appendChild(child)
+      else left.appendChild(child)
+    }
+    trimLineEdges(left)
+    trimLineEdges(right)
+    if (left.lastChild !== null && left.lastChild.nodeType === 3) {
+      left.lastChild.textContent = String(left.lastChild.textContent || '').replace(/\s+$/, '')
+    }
+    if (right.firstChild !== null && right.firstChild.nodeType === 3) {
+      right.firstChild.textContent = String(right.firstChild.textContent || '').replace(/^\s+/, '')
+    }
+    line.appendChild(left)
+    line.appendChild(sep)
+    line.appendChild(right)
+    line.setAttribute('data-furina-split', '1')
+    return true
+  }
+
+  // Measure the ink box of an element's text (ignores trailing letter-spacing
+  // and element padding), so the English line can be tracked to exactly the
+  // Chinese group width on each side.
+  function splashTextInk(element) {
+    var walker = doc.createTreeWalker(element, NodeFilter.SHOW_TEXT, null)
+    var node = null
+    var left = Infinity
+    var right = -Infinity
+    while ((node = walker.nextNode()) !== null) {
+      if (String(node.nodeValue || '').replace(/\s+/g, '') === '') continue
+      var range = doc.createRange()
+      range.selectNodeContents(node)
+      var rects = range.getClientRects()
+      for (var i = 0; i < rects.length; i += 1) {
+        if (rects[i].width > 0.5) {
+          left = Math.min(left, rects[i].left)
+          right = Math.max(right, rects[i].right)
+        }
+      }
+    }
+    if (!isFinite(left) || !isFinite(right)) return null
+    return {
+      left: left,
+      right: right,
+      width: right - left,
+      chars: Math.max(1, String(element.textContent || '').replace(/\s+/g, '').length - 1),
+    }
+  }
+
+  function fitSplashGroup(zhGroup, enGroup) {
+    if (zhGroup === null || enGroup === null) return
+    enGroup.style.letterSpacing = ''
+    for (var pass = 0; pass < 2; pass += 1) {
+      var zh = splashTextInk(zhGroup)
+      var en = splashTextInk(enGroup)
+      if (zh === null || en === null) return
+      var base = Number.parseFloat(window.getComputedStyle(enGroup).letterSpacing)
+      if (!isFinite(base)) base = 0
+      enGroup.style.letterSpacing = (base + (zh.width - en.width) / en.chars).toFixed(3) + 'px'
+    }
+  }
+
+  function fitSplashLines() {
+    var root = doc.getElementById('dsh-startup-root')
+    if (root === null) return false
+    var zh = root.querySelector('.dsu-status-zh')
+    var en = root.querySelector('.dsu-sub-en')
+    if (zh === null || en === null) return false
+    fitSplashGroup(zh.querySelector('.fr-g-l'), en.querySelector('.fr-g-l'))
+    fitSplashGroup(zh.querySelector('.fr-g-r'), en.querySelector('.fr-g-r'))
+    return true
+  }
+
+  function ensureSplashLineSplit() {
+    var root = doc.getElementById('dsh-startup-root')
+    if (root === null) return false
+    var zh = root.querySelector('.dsu-status-zh')
+    var en = root.querySelector('.dsu-sub-en')
+    if (zh === null || en === null) return false
+    var okZh = splitSplashLine(zh)
+    var okEn = splitSplashLine(en)
+    if (okZh && okEn) {
+      window.setTimeout(fitSplashLines, 0)
+      window.setTimeout(fitSplashLines, 260)
+      if (doc.fonts && doc.fonts.ready && typeof doc.fonts.ready.then === 'function') {
+        doc.fonts.ready.then(function () {
+          fitSplashLines()
+        })
+      }
+    }
+    return okZh && okEn
+  }
 
   // The splash has no per-step class or data attribute, only the `[ 0N / 06 ]`
   // counter text. Mirror that number onto `data-furina-step` so the stylesheet
@@ -1120,7 +1295,19 @@
     if (count === null) return false
     var apply = function () {
       var match = /^\s*\[\s*0*(\d+)/.exec(count.textContent || '')
-      if (match !== null) root.setAttribute('data-furina-step', match[1])
+      if (match === null) return
+      root.setAttribute('data-furina-step', match[1])
+      // The step-05 headline animates its tracking as it settles, so keep the
+      // English groups fitted to the Chinese ink width until the animation is
+      // over instead of fitting once at split time.
+      if (match[1] === '5' && !root.__furinaFitTimer) {
+        root.__furinaFitTimer = window.setInterval(fitSplashLines, 180)
+        window.setTimeout(function () {
+          if (root.__furinaFitTimer) window.clearInterval(root.__furinaFitTimer)
+          root.__furinaFitTimer = null
+          fitSplashLines()
+        }, 7000)
+      }
     }
     if (root.getAttribute('data-furina-step-watch') !== '1') {
       root.setAttribute('data-furina-step-watch', '1')
@@ -1476,6 +1663,16 @@
           splashStepTimer = null
         }
       }, 200)
+    }
+    if (splashSplitTimer === null) {
+      var splitTries = 0
+      splashSplitTimer = window.setInterval(function () {
+        splitTries += 1
+        if (ensureSplashLineSplit() || splitTries > 100) {
+          window.clearInterval(splashSplitTimer)
+          splashSplitTimer = null
+        }
+      }, 150)
     }
     assertDarkMode()
     startDarkGuard()
