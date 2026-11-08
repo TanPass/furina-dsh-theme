@@ -260,6 +260,15 @@ tint does not flatten them.
   profile's `file:` dependency there. It used to point into the theme package's
   own install directory, which lives inside pnpm's `.pnpm/<hash>/` and can be
   pruned by the next `dsh plugin` operation.
+* **Shipped agent presets can disappear next to billion-context.** That bundle's
+  patch injects `biliBasicCompactionPolicy` into the four shipped preset rows
+  (`preset-standard` / `-ptc` / `-minimal` / `-cordis`). On 0.2.2 the service
+  never reaches the preset scope, so the rows stay `pending` and the new-session
+  picker only offers custom presets — the install itself looks fine, which makes
+  it hard to attribute. `install/install.ps1` now detects that profile shape
+  (billion-context + dsh-web-app in `dsh.profile.bundles`) and appends a marked,
+  backed-up, idempotent block that clears `inject` on those rows in the profile
+  patch. Nothing in this package depends on billion-context.
 * Hook points the theme relies on were re-verified on 0.2.2: the
   `[role="dialog"][data-shortcut-modal="settings"]` settings modal, the
   `settings.section` slot used by the startup plugin, `[data-slot]` sidebar /
