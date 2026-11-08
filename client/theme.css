@@ -586,8 +586,11 @@ html[data-furina-skin] body [class*='centerCol'] header[data-window-drag] {
 
 /* --- composer ----------------------------------------------------------- */
 
-html[data-furina-skin] body [data-slot='conversation.composer'] [class*='inputWrap'],
-html[data-furina-skin] body [data-slot='conversation.composer'] [class*='composerBar'],
+/* DSH 0.2.2 renamed the composer wrapper: the live box is
+   `[data-slot='conversation.composer'] .<hash>composerStack > div … .<hash>_card`
+   (CSS-module prefixes are per-build, so match on the stable suffixes). The old
+   `inputWrap` / `composerBar` names no longer exist anywhere in the shell. */
+html[data-furina-skin] body [data-slot='conversation.composer'] [class*='_card'],
 html[data-furina-skin] body [data-slot='conversation.input.dock'] > div > div {
   background: color-mix(in srgb, var(--fr-bg-dark) var(--fr-g2), transparent);
   border: 1px solid color-mix(in srgb, var(--fr-accent) 24%, transparent);
@@ -599,8 +602,7 @@ html[data-furina-skin] body [data-slot='conversation.input.dock'] > div > div {
   transition: border-color 200ms var(--fr-ease), box-shadow 200ms var(--fr-ease);
 }
 
-html[data-furina-skin] body [data-slot='conversation.composer'] [class*='inputWrap']:focus-within,
-html[data-furina-skin] body [data-slot='conversation.composer'] [class*='composerBar']:focus-within {
+html[data-furina-skin] body [data-slot='conversation.composer'] [class*='_card']:focus-within {
   border-color: color-mix(in srgb, var(--fr-accent) 62%, transparent);
   box-shadow:
     0 12px 34px rgba(0, 0, 0, 0.46),
@@ -787,7 +789,7 @@ html[data-furina-skin='salon-solitude'] #furina-backdrop .fr-waves { opacity: 0.
   }
 
   html[data-furina-skin] body button[class*='newSession'],
-  html[data-furina-skin] body [data-slot='conversation.composer'] [class*='inputWrap'] {
+  html[data-furina-skin] body [data-slot='conversation.composer'] [class*='_card'] {
     transition: none;
   }
 }

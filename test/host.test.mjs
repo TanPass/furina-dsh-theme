@@ -74,7 +74,14 @@ test('package manifest is installable as a dsh plugin', () => {
   // The host half is ESM and imports node: builtins only; dsh-cost-meter is
   // the one declared runtime dependency (the optional billing panel needs it).
   assert.equal(manifest.type, 'module')
-  assert.deepEqual(manifest.dependencies, { 'dsh-cost-meter': '^1.8.24' })
+  assert.deepEqual(manifest.dependencies, { 'dsh-cost-meter': '^1.9.52' })
+  // DSH 0.2.2 reads engines.dsh alone and ignores peer ranges once it is set;
+  // an absent declaration means "compatible with anything", which is how a
+  // 0.2.2-era preset would reach a 0.2.1 runtime. This range is the one the
+  // ecosystem uses: it spans 0.2.0/0.2.1/0.2.2 including their prereleases and
+  // rejects 0.3 (`^0.2.0` / `~0.2.0` would wrongly reject 0.2.0-rc.x).
+  assert.equal(manifest.engines.dsh, '>=0.2.0-rc.1 <0.3.0-0')
+  assert.equal(manifest.engines.node, '>=22')
 })
 
 test('cordis.patch.yml inserts this package into the dsh:plugin group', () => {

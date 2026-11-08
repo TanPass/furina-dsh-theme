@@ -45,6 +45,9 @@
     lastFetch: 0,
     column: null,
     columnObserver: null,
+    frame: null,
+    frameObserver: null,
+    measureTimer: null,
     session: '',
   }
 
@@ -236,6 +239,16 @@
 
   /* ------------------------------------------------------------------ layout */
 
+  /* Debounce for observer-driven re-measures: a collapse animation flips several
+     attributes in one frame and each of them is not worth a layout pass. */
+  function scheduleMeasure () {
+    if (state.measureTimer !== null) return
+    state.measureTimer = window.setTimeout(function () {
+      state.measureTimer = null
+      measure()
+    }, 120)
+  }
+
   function measure () {
     var root = state.root
     if (root === null || root.parentNode === null) return
@@ -260,16 +273,54 @@
 
     /* Anchor above the account chip: the footer bar paints over the panel's
        lower edge when it is positioned too close to the viewport bottom, so the
-       offset is measured from the footer slot instead of hardcoded. */
-    var footer = doc.querySelector('[data-slot="sidebar.footer.action"]')
+       offset is measured from the footer slot instead of hardcoded.
+       The slot anchor is `display: contents` (DSH 0.2.2 keeps anchors as
+       zero-size wrappers), so its own rect is 0×0: measure the rendered box that
+       holds it. */
+    var footerSlot = doc.querySelector('[data-slot="sidebar.footer.action"]')
+    var footerBox = footerSlot !== null ? (footerSlot.parentElement || footerSlot) : null
     var bottom = 64
-    if (footer !== null) {
-      var footerRect = footer.getBoundingClientRect()
+    if (footerBox !== null) {
+      var footerRect = footerBox.getBoundingClientRect()
       if (footerRect.height > 0) {
         bottom = Math.max(64, Math.round(window.innerHeight - footerRect.top) + 10)
       }
     }
     root.style.setProperty('--fr-bill-bottom', bottom + 'px')
+
+    /* The card is position:fixed, but living inside the sidebar footer row keeps
+       it in the sidebar's accessibility tree and lets a shell re-render take it
+       along. The first mount can happen before that row exists (it lands on
+       <body>); move it once the anchor has a parent. */
+    if (footerSlot !== null && footerSlot.parentNode !== null && root.parentNode !== footerSlot.parentNode) {
+      footerSlot.parentNode.insertBefore(root, footerSlot)
+    }
+
+    /* Sidebar collapse / right-bar toggles are attribute-only changes deep in
+       the layout frame — no resize event, no observed child of <body> — so watch
+       the frame's own attributes and re-measure when one flips. */
+    var frame = doc.querySelector('[data-sidebar-collapsed], [class*="frame"]')
+    if (frame !== state.frame) {
+      state.frame = frame
+      if (state.frameObserver !== null) {
+        state.frameObserver.disconnect()
+        state.frameObserver = null
+      }
+      if (typeof MutationObserver === 'function' && frame !== null) {
+        state.frameObserver = new MutationObserver(scheduleMeasure)
+        state.frameObserver.observe(frame, {
+          attributes: true,
+          attributeFilter: [
+            'data-sidebar-collapsed',
+            'data-sidebar-drawer',
+            'data-rightbar-collapsed',
+            'data-rightbar-fullscreen',
+            'style',
+            'class',
+          ],
+        })
+      }
+    }
 
     var collapsed = left < 160 || window.innerWidth < 720
     root.setAttribute('data-collapsed', collapsed ? 'true' : 'false')

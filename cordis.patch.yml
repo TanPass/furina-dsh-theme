@@ -7,9 +7,18 @@
 #
 # The second row mounts dsh-cost-meter's `costMeter` service. The billing panel
 # reads the ledger through that service (`getState()` / `getSessionBilling()`);
-# installing the package alone is not enough — the service only exists once
-# this row is applied. The id is prefixed to stay unique when a profile also
-# carries dsh-cost-meter's own patch row.
+# installing the package alone is not enough — the service only exists once this
+# row is applied.
+#
+# Duplicate-mount constraint (DSH 0.2.2): dsh-cost-meter ships its own bundle
+# patch that inserts `- id: cost-meter / name: dsh-cost-meter`. Cordis keys a
+# service by name per isolate realm, so a profile that ALSO lists dsh-cost-meter
+# in `dsh.profile.bundles` composes two rows for one service and the second row
+# fails to provide `costMeter` (a warning, not a crash — but that row's client
+# half and stream metering are lost). Install the meter one way only: either let
+# this row mount it (the default for theme-only profiles), or add the meter as
+# its own bundle and delete this row. The id is prefixed so the rows stay
+# distinguishable in `--dump-config`.
 - insert:
     - id: furina-dsh-theme
       name: furina-dsh-theme

@@ -163,3 +163,38 @@ test('wallpapers are switchable independently of the skin', () => {
     assert.ok(statSync(join(CLIENT, 'assets', 'thumbs', file.replace('.jpg', '-640.jpg'))).size > 20000, `${file} thumb`)
   }
 })
+
+test('the browser half targets the DSH 0.2.2 DOM, not 0.2.1 class names', () => {
+  const billingJs = read('billing.js')
+
+  // 0.2.2's settings dialog has no `[class*="content"]` wrapper: navTitle, nav,
+  // header and options are direct children. Measuring the dialog itself makes
+  // the injected pane cover the nav and the shell's close button, so the pane
+  // must be positioned from the options column.
+  assert.ok(!themeJs.includes('[class*="content"]'), 'no content-wrapper probe')
+  assert.ok(themeJs.includes('optionsOf(settingsDialog)'), 'pane is measured from the options column')
+  // The options column has to keep its box while the pane is open, otherwise a
+  // resize or observer pass re-measures 0×0 and bails out.
+  assert.ok(/options\.style\.visibility = open/u.test(themeJs))
+  assert.ok(!/options\.style\.display = open/u.test(themeJs))
+  // Narrow windows turn the settings nav into a horizontal strip: appending the
+  // injected row after the shell's own list puts it off-screen.
+  assert.ok(themeJs.includes('list.insertBefore(cell, after)'), 'nav row is inserted in order')
+  // Closing the dialog unmounts it; the observer has to notice so the next open
+  // does not jump straight back to the theme page.
+  assert.ok(/node === settingsDialog/u.test(themeJs), 'dialog removal resets the pane state')
+
+  // 0.2.2 renamed the composer wrapper; the old class names appear nowhere in
+  // the shipped shell, so rules keyed on them never matched. (Comments may name
+  // them; only real declarations count.)
+  const themeCssCode = themeCss.replace(/\/\*[\s\S]*?\*\//gu, '')
+  assert.ok(!themeCssCode.includes('inputWrap'))
+  assert.ok(!themeCssCode.includes('composerBar'))
+  assert.ok(themeCssCode.includes("[class*='_card']"), 'composer glass targets the live card')
+
+  // `[data-slot="sidebar.footer.action"]` is a `display: contents` anchor in
+  // 0.2.2: its own rect is 0×0, so the rendered box lives on its parent.
+  assert.ok(billingJs.includes('footerSlot.parentElement'), 'footer anchor is measured through its box')
+  // Sidebar collapse is an attribute flip inside the layout frame, not a resize.
+  assert.ok(billingJs.includes('data-sidebar-collapsed'), 'frame attribute observer')
+})

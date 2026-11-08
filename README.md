@@ -225,12 +225,63 @@ tint does not flatten them.
 
 ## Requirements
 
-* DSH with the Web GUI (`dsh web`), profile `web`.
+* DSH with the Web GUI (`dsh web`), profile `web`. **Tested on DSH 0.2.2-rc.1**;
+  `engines.dsh` declares the supported range `>=0.2.0-rc.1 <0.3.0-0`, so the
+  plugin manager refuses it on 0.3+ instead of loading half of it.
 * Node 22+ (only for the plugin process; the browser half is plain ES5-era JS).
 * **No other full-page theme enabled.** Themes that repaint the entire shell — notably
   `dsh-theme-endfield` / `dsh-endfield-theme` — override the same `--dsh-*` tokens and
   paint their own opaque layer over the app. They are not broken, but they will win:
   enable one theme at a time. See [Coexistence](#coexistence-with-other-themes).
+
+### DSH 0.2.2 compatibility notes
+
+1.2.8 is the first release built against DSH 0.2.2. What changed and why:
+
+* **Agent preset** (`preset/furina-preset/agent.cordis.yml`) — the
+  `@deepseek-ai/dsh-tool-subagent-control/list-agents` row is gone: that subpath
+  export was removed in 0.2.2 (`list_agents` is registered by the main package
+  now), and an unresolvable row makes the whole preset fail to mount, so every
+  new session that selected 芙宁娜 reported `agent-preset/invalid`.
+  `modelSelectionSettings` became `modelSelection` + `modelDiscovery`; the old
+  key is silently ignored by 0.2.2, which cost the subagent tool its
+  model-facing parameters and the `list_subagent_models` tool.
+  **If you installed the preset before this release, rewrite the block once**
+  after upgrading: `node tools/install-preset.mjs` replaces only the plugin's
+  own marker block with the fixed rows (the settings-pane button is a toggle —
+  clicking 已安装 removes it, so click again to install the fixed version).
+* **`engines.dsh`** is now declared, so 0.3 will refuse the plugin instead of
+  loading it unconstrained.
+* **`dsh-cost-meter` floor is `^1.9.52`** — the first release that targets the
+  0.2.2 service-provision records. Older 1.8.x copies can miss isolated services
+  on a 0.2.2 host.
+* **Startup-animation installer** now copies the vendored
+  `dsh-startup-screen` to `<DSH_HOME>/plugins/dsh-startup-screen` and points the
+  profile's `file:` dependency there. It used to point into the theme package's
+  own install directory, which lives inside pnpm's `.pnpm/<hash>/` and can be
+  pruned by the next `dsh plugin` operation.
+* Hook points the theme relies on were re-verified on 0.2.2: the
+  `[role="dialog"][data-shortcut-modal="settings"]` settings modal, the
+  `settings.section` slot used by the startup plugin, `[data-slot]` sidebar /
+  main / footer anchors, `data-ds-theme-source` on `<html>` and
+  `data-ds-dark-theme` on `<body>`, and `dsh.sessions.current` in localStorage.
+* **Settings pane geometry** — 0.2.2's settings dialog no longer has a
+  `[class*="content"]` wrapper, so the 芙宁娜主题 pane used to be sized to the
+  whole dialog and covered the nav column and the shell's close button. It is
+  now measured from the section column itself, and that column is hidden with
+  `visibility` (not `display`) so a window resize can re-position the pane.
+* **Settings nav order** — the injected 芙宁娜主题 row is inserted before the
+  cost section instead of appended last, so the narrow-window settings nav
+  (a horizontal strip at ≤900 px) keeps it on screen.
+* **Billing anchor** — `[data-slot="sidebar.footer.action"]` is a
+  `display: contents` anchor in 0.2.2 (0×0 rect), so the card now measures the
+  rendered footer box; without that it sat 87 px over the balance strip. Sidebar
+  collapse/restore are attribute flips inside the layout frame, which the panel
+  now observes, and the card re-parents itself into the footer row once the
+  shell has rendered it.
+* **Composer glass** — the 0.2.2 composer wrapper is named
+  `…composerStack > … > …_card`; the old `inputWrap` / `composerBar` selectors
+  matched nothing, so the glass/blur on the input card is back.
 
 ## Install
 
@@ -509,6 +560,12 @@ rendered as `—` and a short Chinese explanation, never as `0`. A real `0` (no
 calls today) stays `0`. The endpoint answers `503 {"ok":false,
 "error":"billing-unavailable"}` when the host half is not installed, and the
 panel then removes itself instead of showing an empty gauge.
+
+`dsh-cost-meter` must be mounted **once**. The theme's bundle patch mounts it so
+a theme-only profile gets the panel out of the box; if you also add
+`dsh-cost-meter` to `dsh.profile.bundles` (its own patch inserts `id:
+cost-meter`), delete the theme's `furina-cost-meter` row or Cordis will warn
+about a duplicate `costMeter` service and the second row's client half is lost.
 
 ### Screenshots
 

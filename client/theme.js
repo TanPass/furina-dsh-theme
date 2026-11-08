@@ -27,7 +27,7 @@
   if (window.__furinaTheme) return
 
   var doc = document
-  var VERSION = '1.2.7'
+  var VERSION = '1.2.8'
   var ROUTE = '/furina-theme'
   var STORAGE_KEY = 'furina-theme.settings.v1'
   var SCRIPT_TAG = 'data-furina-theme'
@@ -1352,11 +1352,9 @@
   }
 
   function optionsOf(dialog) {
-    var content = dialog.querySelector('[class*="content"]')
-    if (content !== null) {
-      var inside = content.querySelector('[class*="options"]')
-      if (inside !== null) return inside
-    }
+    // The section column. 0.2.2 keeps it directly under the dialog panel (the
+    // pre-0.2.2 content wrapper is gone), so a plain descendants query covers
+    // both shapes.
     return dialog.querySelector('[class*="options"]')
   }
 
@@ -1400,12 +1398,32 @@
     } else {
       cell = doc.createElement('button')
       cell.type = 'button'
-      cell.className = 'VOzbGW_navCell'
-      cell.innerHTML = '<span class="VOzbGW_navLabel">芙宁娜主题</span>'
+      // No build-hashed class names here: CSS-module prefixes are per-build, so
+      // this fallback carries its own structural styles instead.
+      cell.style.cssText = 'display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;'
+        + 'border:0;border-radius:8px;background:none;color:inherit;font:inherit;'
+        + 'cursor:pointer;text-align:left;'
+      cell.innerHTML = '<span>芙宁娜主题</span>'
     }
     cell.setAttribute(SETTINGS_NAV_ATTR, '1')
     cell.setAttribute('title', '芙宁娜主题 · Furina theme')
-    list.appendChild(cell)
+    // Insert in nav order instead of appending. On a narrow window the settings
+    // dialog goes full-screen and the nav becomes a horizontally scrolling
+    // strip; a row appended after the shell's own (already wider than the
+    // viewport) list would start off-screen. Land before the startup-animation
+    // page when it exists (its row sits right after the preset pages), else
+    // before the cost page, else at the end.
+    var after = null
+    var rows = list.querySelectorAll('button')
+    var preferred = ['启动动画', '费用']
+    for (var p = 0; p < preferred.length && after === null; p += 1) {
+      for (var r = 0; r < rows.length; r += 1) {
+        if (rows[r] === cell) continue
+        if ((rows[r].textContent || '').indexOf(preferred[p]) >= 0) { after = rows[r]; break }
+      }
+    }
+    if (after !== null && after.parentNode === list) list.insertBefore(cell, after)
+    else list.appendChild(cell)
   }
 
   function navClick(event) {
@@ -1445,27 +1463,25 @@
     return host
   }
 
-  // The pane sits exactly on top of the area the dialog devotes to a section,
-  // so the nav column and the dialog title stay visible while it is open. The
-  // section column is display:none while the pane is open, so the geometry has
-  // to come from its always-visible parent plus the content header.
+  // The pane sits exactly on top of the column the dialog devotes to a section,
+  // so the nav column and the dialog title stay visible while it is open.
+  //
+  // DSH 0.2.2 dropped the wrapper this used to measure: the settings panel's
+  // children are now navTitle / nav / header / options directly, so the section
+  // column IS the options box and no header offset is needed. Measuring the
+  // dialog itself would make the pane cover the nav and the close button, so an
+  // unmeasurable options column is the only fallback.
   function positionPane() {
     if (settingsPane === null || settingsDialog === null) return
     var panelRect = settingsDialog.getBoundingClientRect()
     if (panelRect.width < 1) return
-    var content = settingsDialog.querySelector('[class*="content"]')
-    var base = content !== null ? content : settingsDialog
+    var base = optionsOf(settingsDialog)
+    if (base === null) base = settingsDialog
     var rect = base.getBoundingClientRect()
     if (rect.width < 1 || rect.height < 1) return
-    var offset = 0
-    var header = content !== null ? content.querySelector('[class*="header"]') : null
-    if (header !== null) {
-      var headerRect = header.getBoundingClientRect()
-      if (headerRect.height > 0) offset = headerRect.height
-    }
-    var top = rect.top - panelRect.top + offset
-    var height = Math.max(0, rect.height - offset)
-    // Never spill past the dialog's own bottom edge (the content column can be
+    var top = rect.top - panelRect.top
+    var height = rect.height
+    // Never spill past the dialog's own bottom edge (the section column can be
     // taller than the visible panel when a section scrolls).
     var maxHeight = panelRect.height - top
     if (maxHeight > 0 && height > maxHeight) height = maxHeight
@@ -1482,11 +1498,12 @@
       return
     }
     settingsOpen = open
-    // Measure while the section area still has a layout box: display:none on
-    // the options column would make the pane's rectangle 0×0.
+    // Measure while the section area still has a layout box. `visibility` is
+    // used instead of `display` on purpose: display:none would zero the box and
+    // the next resize/observer pass could no longer re-measure the pane.
     positionPane()
     var options = optionsOf(settingsDialog)
-    if (options !== null) options.style.display = open ? 'none' : ''
+    if (options !== null) options.style.visibility = open ? 'hidden' : ''
     settingsPane.style.display = open ? 'block' : 'none'
 
     var ours = settingsDialog.querySelectorAll('[' + SETTINGS_NAV_ATTR + ']')
@@ -1629,6 +1646,14 @@
         for (var j = 0; j < record.removedNodes.length; j += 1) {
           var node = record.removedNodes[j]
           if (node === backdrop || node === switcherHost) {
+            scheduleReconcile()
+            return
+          }
+          // The shell closes the settings dialog by unmounting it. Without this
+          // the internal `settingsOpen` stays true and the next open jumps
+          // straight to the Furina page instead of the last native section.
+          if (settingsDialog !== null && node !== null && node.nodeType === 1
+            && (node === settingsDialog || (typeof node.contains === 'function' && node.contains(settingsDialog)))) {
             scheduleReconcile()
             return
           }

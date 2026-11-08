@@ -1,3 +1,15 @@
+# 芙宁娜·德·枫丹 — DSH Agent 预设的插件列表。
+#
+# 目标运行时：DSH 0.2.2（`@deepseek-ai/dsh-agent-preset` 的 `plugins` 字段）。
+# 每一条 name 都必须是该 DSH 版本真实存在的插件/导出，config 只写该插件
+# Config schema 认可的键；否则预设挂载时整块失败（新建会话报 agent-preset/invalid）。
+#
+# 与 0.2.1 及更早版本的差异，都在 delegation 段里：
+#   - `@deepseek-ai/dsh-tool-subagent-control/list-agents` 这个子路径导出在
+#     0.2.2 已删除（list_agents 工具改由主包注册），保留该行会让整个预设挂载失败；
+#   - `modelSelectionSettings` 改名为 `modelSelection` + `modelDiscovery`，旧键在
+#     0.2.2 被静默忽略（不报错，但 subagent 会失去模型选择参数与
+#     list_subagent_models 工具）。
 - id: persona
   name: '@deepseek-ai/dsh-persona'
   config:
@@ -138,14 +150,13 @@
   config:
     - id: tool-subagent-control
       name: '@deepseek-ai/dsh-tool-subagent-control'
-    - id: tool-subagent-list-agents
-      name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
     - id: tool-subagent
       name: '@deepseek-ai/dsh-tool-subagent'
       config:
         provider: spawn
         toolName: subagent
-        modelSelectionSettings: true
+        modelSelection: true
+        modelDiscovery: true
     - id: tool-subagent-fork
       name: '@deepseek-ai/dsh-tool-subagent'
       config:
